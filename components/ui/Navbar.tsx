@@ -35,12 +35,12 @@ export default function Navbar() {
             <span>Request Demo</span>
           </button>
         </Link>
-        <Link href="/login" className="text-gray-600 hover:text-blue-600 transition">
-          Sign In
+        <Link href="/auth/signin" className="text-gray-600 hover:text-blue-600 transition">
+          Log In
         </Link>
-        <Link href="/signup">
+        <Link href="/auth/signup">
           <button className="px-4 py-2 bg-blue-600 text-white rounded-lg shadow-md hover:bg-blue-700 transition">
-            Sign Up
+            Get Started
           </button>
         </Link>
       </div>
