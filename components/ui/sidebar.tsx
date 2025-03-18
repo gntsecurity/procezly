@@ -1,8 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { LayoutDashboard, FileText, Users, Settings, LogOut } from "lucide-react";
+import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
 
 const sidebarLinks = [
   { name: "Dashboard", href: "/dashboard", icon: <LayoutDashboard className="h-5 w-5 text-blue-600" /> },
@@ -12,6 +13,14 @@ const sidebarLinks = [
 
 export default function Sidebar() {
   const pathname = usePathname();
+  const router = useRouter();
+  const supabase = createClientComponentClient();
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    router.push("/auth/signin"); // Redirect to login page
+    router.refresh(); // Ensures session is cleared
+  };
 
   return (
     <aside className="w-64 h-screen bg-gray-100 shadow-md flex flex-col justify-between">
@@ -52,10 +61,10 @@ export default function Sidebar() {
           <span className="text-gray-900 font-medium">Settings</span>
         </Link>
 
-        {/* Logout Button (Placeholder for Supabase Auth) */}
+        {/* Logout Button (Now Fully Functional) */}
         <button
           className="flex items-center space-x-3 px-4 py-3 w-full text-left rounded-lg transition hover:bg-red-100"
-          onClick={() => console.log("Logout functionality to be added")}
+          onClick={handleLogout}
         >
           <LogOut className="h-5 w-5 text-red-600" />
           <span className="text-red-600 font-medium">Logout</span>

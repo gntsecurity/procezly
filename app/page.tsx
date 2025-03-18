@@ -46,38 +46,42 @@ export default function Home() {
       </main>
 
       {/* Why Procezly Section */}
-      <section className="w-full max-w-[1400px] px-12 py-40 mx-auto space-y-24">
-        <h2 className="text-6xl font-bold text-center">Why Modern Manufacturing Chooses Procezly</h2>
+<section className="w-full max-w-[1400px] px-12 py-40 mx-auto space-y-16">
+  <h2 className="text-6xl font-bold text-center text-gray-900">
+    Why Modern Manufacturing Chooses <span className="text-blue-600">Procezly</span>
+  </h2>
 
-        {[
-          {
-            icon: ClipboardCheck,
-            title: "Automated Scheduling",
-            description: "Never miss an audit again—intelligent scheduling assigns and tracks compliance in real time.",
-          },
-          {
-            icon: Eye,
-            title: "Real-Time Monitoring",
-            description: "Live tracking ensures every compliance metric is met instantly, minimizing risks.",
-            reverse: true,
-          },
-          {
-            icon: ShieldCheck,
-            title: "Industry-Leading Security",
-            description: "Procezly meets the highest standards of encryption and data integrity, ensuring compliance at every level.",
-          },
-        ].map(({ icon: Icon, title, description, reverse }, i) => (
-          <div key={i} className={`flex flex-col md:flex-row${reverse ? "-reverse" : ""} items-center gap-16`}>
-            <div className="w-16 h-16 flex items-center justify-center bg-blue-600 rounded-xl">
-              <Icon className="h-10 w-10 text-white" />
-            </div>
-            <div>
-              <h3 className="text-3xl font-semibold text-gray-900">{title}</h3>
-              <p className="text-lg text-gray-600 mt-4 max-w-2xl">{description}</p>
-            </div>
-          </div>
-        ))}
-      </section>
+  <div className="grid grid-cols-1 md:grid-cols-3 gap-10">
+    {[
+      {
+        icon: ClipboardCheck,
+        title: "Automated Scheduling",
+        description: "Never miss an audit again—intelligent scheduling assigns and tracks compliance in real time.",
+      },
+      {
+        icon: Eye,
+        title: "Real-Time Monitoring",
+        description: "Live tracking ensures every compliance metric is met instantly, minimizing risks.",
+      },
+      {
+        icon: ShieldCheck,
+        title: "Industry-Leading Security",
+        description: "Procezly meets the highest standards of encryption and data integrity, ensuring compliance at every level.",
+      },
+    ].map(({ icon: Icon, title, description }, i) => (
+      <div 
+        key={i} 
+        className="flex flex-col items-center p-8 bg-white rounded-3xl shadow-lg border border-gray-200 hover:shadow-xl transition duration-300"
+      >
+        <div className="w-20 h-20 flex items-center justify-center bg-gradient-to-br from-blue-500 to-indigo-500 rounded-2xl shadow-md">
+          <Icon className="h-12 w-12 text-white" />
+        </div>
+        <h3 className="text-2xl font-semibold text-gray-900 mt-6">{title}</h3>
+        <p className="text-lg text-gray-600 mt-4 text-center">{description}</p>
+      </div>
+    ))}
+  </div>
+</section>
     </div>
   );
 }

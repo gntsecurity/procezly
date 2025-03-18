@@ -1,0 +1,29 @@
+import { NextResponse } from 'next/server';
+import { supabase } from '@/lib/supabase';
+
+export async function POST(req: Request) {
+    const { email } = await req.json();
+
+    // Fetch user by email
+    const { data: user, error } = await supabase
+        .from('auth.users')
+        .select('id')
+        .eq('email', email)
+        .single();
+
+    if (error || !user) {
+        return NextResponse.json({ error: 'User not found' }, { status: 404 });
+    }
+
+    // Send a reauthentication challenge
+    const { error: challengeError } = await supabase.auth.mfa.challenge({
+        factorId: 'email',
+        userId: user.id,
+    });
+
+    if (challengeError) {
+        return NextResponse.json({ error: challengeError.message }, { status: 500 });
+    }
+
+    return NextResponse.json({ message: 'Reauthentication email sent' });
+}

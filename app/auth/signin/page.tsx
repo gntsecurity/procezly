@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { supabase } from "/lib/supabase";
@@ -32,9 +32,9 @@ export default function SignIn() {
           .single();
 
         if (orgData) {
-          router.push("/dashboard"); // User is part of an organization
+          router.push("/dashboard");
         } else {
-          router.push("/auth/company-setup"); // User needs to create or join an org
+          router.push("/auth/company-setup");
         }
       }
     }
@@ -69,6 +69,11 @@ export default function SignIn() {
             Sign In
           </button>
         </form>
+        <p className="text-center text-gray-600 mt-4">
+          <Link href="/auth/password-reset" className="text-blue-600 hover:underline">
+            Forgot Password?
+          </Link>
+        </p>
         <p className="text-center text-gray-600 mt-4">
           Don’t have an account?{" "}
           <Link href="/auth/signup" className="text-blue-600 hover:underline">
