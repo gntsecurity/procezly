@@ -20,10 +20,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   const [loading, setLoading] = useState(true);
   const [collapsed, setCollapsed] = useState(false);
 
-  // Only check for /dashboard now
+  // Only show sidebar and enforce auth on the /dashboard route
   const isDashboardPage = pathname.startsWith("/dashboard");
 
   useEffect(() => {
+    // Register the service worker for PWA support
     if ("serviceWorker" in navigator) {
       navigator.serviceWorker.register("/sw.js").then(() => {
         console.log("Service Worker Registered");

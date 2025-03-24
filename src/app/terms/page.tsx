@@ -14,7 +14,7 @@ export default function TermsPage() {
         You're responsible for maintaining the confidentiality of your login credentials and all activity under your account.
       </p>
       <p className="mt-8 text-sm text-gray-500">
-        These terms may change periodically. Continuing to use Procezly means you agree to any updates.
+        These terms may change periodically. Continued use of Procezly indicates agreement with the latest version.
       </p>
     </main>
   );

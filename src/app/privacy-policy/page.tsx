@@ -3,11 +3,11 @@ export default function PrivacyPolicyPage() {
     <main className="max-w-4xl mx-auto px-6 py-16 text-gray-800">
       <h1 className="text-4xl font-bold mb-6">Privacy Policy</h1>
       <p className="mb-4">
-        At Procezly, your privacy is a top priority. This policy explains how we collect, use, and protect your data when you use our services.
+        At Procezly, your privacy is important. This policy explains how we collect, use, and protect your data when you use our services.
       </p>
       <h2 className="text-2xl font-semibold mt-8 mb-2">What We Collect</h2>
       <ul className="list-disc pl-6 text-gray-700 space-y-1">
-        <li>Your email and contact info</li>
+        <li>Your email and contact information</li>
         <li>Usage and interaction data</li>
         <li>Preferences and settings</li>
       </ul>
@@ -16,7 +16,7 @@ export default function PrivacyPolicyPage() {
         We use this data to improve your experience, offer better services, and keep you informed. Your data is never sold or shared without your consent.
       </p>
       <p className="mt-8 text-sm text-gray-500">
-        This policy is updated as needed. Your continued use of Procezly implies agreement with the latest version.
+        This policy is updated as needed. Continued use of Procezly means you agree to the current version.
       </p>
     </main>
   );
