@@ -56,6 +56,7 @@ export default function Home() {
           <FauxDashboard />
         </motion.div>
       </section>
+      <Footer/>
     </div>
   );
 }
