@@ -20,11 +20,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   const [loading, setLoading] = useState(true);
   const [collapsed, setCollapsed] = useState(false);
 
-  // Only show sidebar and enforce auth on the /dashboard route
+  // Show sidebar and protect auth only on dashboard route
   const isDashboardPage = pathname.startsWith("/dashboard");
 
   useEffect(() => {
-    // Register the service worker for PWA support
+    // Register service worker for PWA
     if ("serviceWorker" in navigator) {
       navigator.serviceWorker.register("/sw.js").then(() => {
         console.log("Service Worker Registered");
@@ -55,15 +55,17 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <link rel="manifest" href="/manifest.json" />
         <meta name="theme-color" content="#0a2540" />
       </head>
-      <body className="min-h-screen flex">
-        {isDashboardPage && (
-          <Sidebar collapsed={collapsed} setCollapsed={setCollapsed} />
-        )}
-        <div className={`flex-1 flex flex-col transition-all ${isDashboardPage ? (collapsed ? "ml-16" : "ml-64") : ""}`}>
-          {!isDashboardPage && <Navbar />}
-          {children}
-          {!isDashboardPage && <Footer />}
-          <CookieBanner />
+      <body className="bg-white text-gray-900">
+        <div className="flex min-h-screen w-full">
+          {isDashboardPage && (
+            <Sidebar collapsed={collapsed} setCollapsed={setCollapsed} />
+          )}
+          <div className={`flex flex-col flex-1 ${isDashboardPage ? (collapsed ? "ml-16" : "ml-64") : ""}`}>
+            {!isDashboardPage && <Navbar />}
+            <main className="flex-1">{children}</main>
+            {!isDashboardPage && <Footer />}
+            <CookieBanner />
+          </div>
         </div>
       </body>
     </html>

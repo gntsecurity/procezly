@@ -81,3 +81,10 @@ html {
 * {
   transition: all 0.3s ease-in-out;
 }
+
+/* Ensure main content stretches to push footer to bottom */
+main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
