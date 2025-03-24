@@ -1,6 +1,7 @@
 "use client";
 
 import Navbar from "../components/Navbar";
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import Footer from "../components/Footer";
 import FauxDashboard from "../components/FauxDashboard";
 import { motion, useScroll, useTransform } from "framer-motion";
