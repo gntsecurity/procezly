@@ -11,7 +11,7 @@ export default function PrivacyPolicyPage() {
         <li>Usage and interaction data</li>
         <li>Preferences and settings</li>
       </ul>
-      <h2 className="text-2xl font-semibold mt-8 mb-2">How It's Used</h2>
+      <h2 className="text-2xl font-semibold mt-8 mb-2">How It&apos;s Used</h2>
       <p>
         We use this data to improve your experience, offer better services, and keep you informed. Your data is never sold or shared without your consent.
       </p>

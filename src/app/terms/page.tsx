@@ -11,7 +11,7 @@ export default function TermsPage() {
       </p>
       <h2 className="text-2xl font-semibold mt-8 mb-2">Account Responsibility</h2>
       <p>
-        You're responsible for maintaining the confidentiality of your login credentials and all activity under your account.
+        You&apos;re responsible for maintaining the confidentiality of your login credentials and all activity under your account.
       </p>
       <p className="mt-8 text-sm text-gray-500">
         These terms may change periodically. Continued use of Procezly indicates agreement with the latest version.
