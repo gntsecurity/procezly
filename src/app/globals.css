@@ -3,7 +3,16 @@
 @tailwind utilities;
 
 html, body {
-  @apply m-0 p-0 h-full w-full bg-white overflow-x-hidden;
+  @apply m-0 p-0 h-full w-full bg-white;
+}
+
+/* Ensure scrolling works properly */
+html {
+  overflow-y: auto;
+}
+
+body {
+  overflow-x: hidden;
 }
 
 /* Dashboard Container */
@@ -29,7 +38,7 @@ html, body {
 
 /* Main Content */
 .content {
-  @apply flex-1 h-screen w-full p-6 overflow-auto;
+  @apply flex-1 w-full p-6 overflow-auto;
 }
 
 /* Mobile-Friendly Adjustments */
