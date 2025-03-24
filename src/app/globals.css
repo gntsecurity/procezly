@@ -15,27 +15,45 @@ html, body {
   font-family: 'Inter', sans-serif;
 }
 
-/* Ensure full height on flex layouts */
+/* Fix full-height layout */
 body {
   display: flex;
   flex-direction: column;
+  min-height: 100vh;
 }
 
-/* Fix Navbar */
-.navbar {
+/* Sidebar */
+.sidebar {
+  height: 100vh;
   position: fixed;
-  width: 100%;
   top: 0;
   left: 0;
-  z-index: 50;
+  width: 16rem;
   background: white;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+  border-right: 1px solid #e5e7eb;
+  box-shadow: 2px 0 10px rgba(0, 0, 0, 0.05);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
 }
 
-/* Page Content */
-.content {
+/* Sidebar Collapsed */
+.sidebar.collapsed {
+  width: 4rem;
+}
+
+/* Main Content */
+.main-content {
   flex: 1;
-  padding-top: 80px; /* Prevents content from being hidden behind Navbar */
+  display: flex;
+  flex-direction: column;
+  margin-left: 16rem;
+  padding: 2rem;
+}
+
+/* Adjust for collapsed sidebar */
+.sidebar.collapsed + .main-content {
+  margin-left: 4rem;
 }
 
 /* Mobile Fixes */
@@ -51,11 +69,6 @@ body {
   .container {
     max-width: 100%;
     padding: 0 16px;
-  }
-
-  .navbar {
-    height: 60px;
-    padding: 8px;
   }
 }
 

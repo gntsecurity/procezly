@@ -65,11 +65,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <link rel="manifest" href="/manifest.json" />
         <meta name="theme-color" content="#0a2540" />
       </head>
-      <body className="min-h-screen flex flex-col">
+      <body className="min-h-screen flex">
         {isDashboardPage && <Sidebar collapsed={collapsed} setCollapsed={setCollapsed} />}
-        <div className={`flex-1 flex flex-col transition-all ${isDashboardPage ? (collapsed ? "ml-16" : "ml-64") : ""}`}>
-          {children}
-        </div>
+        <div className="main-content">{children}</div>
       </body>
     </html>
   );
