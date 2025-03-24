@@ -8,7 +8,10 @@ const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
 
   return (
     <div className="flex h-screen w-screen">
+      {/* ✅ Sidebar only appears here */}
       <Sidebar collapsed={collapsed} setCollapsed={setCollapsed} />
+      
+      {/* ✅ Content area with spacing */}
       <main className={`flex-1 transition-all duration-300 ${collapsed ? "ml-16" : "ml-64"} p-6`}>
         {children}
       </main>

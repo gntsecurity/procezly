@@ -5,7 +5,6 @@ import { supabase } from "../../utils/supabaseClient";
 import { ClipboardList, ShieldCheck, Users, AlertTriangle, CheckCircle, Clock, FileText } from "lucide-react";
 
 const Dashboard = () => {
-  // State to hold Supabase data
   const [dashboardData, setDashboardData] = useState({
     totalAudits: 0,
     ongoingAudits: 0,
@@ -14,12 +13,11 @@ const Dashboard = () => {
     complianceScore: 0,
     expiringCertifications: 0,
     activeUsers: 0,
-    recentActivity: []
+    recentActivity: [],
   });
 
   const [isAuthenticated, setIsAuthenticated] = useState(false);
 
-  // Fetch Data from Supabase
   useEffect(() => {
     const checkAuth = async () => {
       const { data: session } = await supabase.auth.getSession();
@@ -35,13 +33,12 @@ const Dashboard = () => {
         const { data: audits } = await supabase.from("audits").select("*");
         const { data: users } = await supabase.from("users").select("*");
 
-        // Process audit data
         const totalAudits = audits?.length || 0;
-        const ongoingAudits = audits?.filter(a => a.status === "Ongoing").length || 0;
-        const completedAudits = audits?.filter(a => a.status === "Completed").length || 0;
-        const failedAudits = audits?.filter(a => a.status === "Failed").length || 0;
-        const complianceScore = 87; // Placeholder until calculation is implemented
-        const expiringCertifications = 3; // Placeholder
+        const ongoingAudits = audits?.filter((a) => a.status === "Ongoing").length || 0;
+        const completedAudits = audits?.filter((a) => a.status === "Completed").length || 0;
+        const failedAudits = audits?.filter((a) => a.status === "Failed").length || 0;
+        const complianceScore = 87;
+        const expiringCertifications = 3;
         const activeUsers = users?.length || 0;
 
         setDashboardData({
@@ -52,7 +49,7 @@ const Dashboard = () => {
           complianceScore,
           expiringCertifications,
           activeUsers,
-          recentActivity: []
+          recentActivity: [],
         });
       } catch (error) {
         console.error("Error fetching Supabase data:", error);
