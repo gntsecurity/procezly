@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { createClient } from "@supabase/supabase-js";
+import Sidebar from "../components/Sidebar";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import "./globals.css";
@@ -17,24 +18,16 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   const router = useRouter();
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [collapsed, setCollapsed] = useState(false);
 
-  // Define dashboard-related pages that require authentication
-  const isDashboard = [
-    "/dashboard",
-    "/audits",
-    "/reports",
-    "/history",
-    "/corrective-actions",
-    "/compliance",
-    "/templates",
-    "/ai-insights",
-    "/users",
-    "/organizations",
-    "/workflows",
-    "/integrations",
-    "/security",
-    "/settings"
-  ].some((route) => pathname.startsWith(route));
+  // Define dashboard-related pages that require the sidebar
+  const isDashboard = pathname.startsWith("/dashboard") || pathname.startsWith("/audits") ||
+                      pathname.startsWith("/reports") || pathname.startsWith("/history") ||
+                      pathname.startsWith("/corrective-actions") || pathname.startsWith("/compliance") ||
+                      pathname.startsWith("/templates") || pathname.startsWith("/ai-insights") ||
+                      pathname.startsWith("/users") || pathname.startsWith("/organizations") ||
+                      pathname.startsWith("/workflows") || pathname.startsWith("/integrations") ||
+                      pathname.startsWith("/security") || pathname.startsWith("/settings");
 
   // Authentication check
   useEffect(() => {
@@ -62,8 +55,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en">
       <body className="min-h-screen flex">
-        <div className="flex-1 flex flex-col transition-all">
-          {/* ✅ Navbar & Footer only on public pages */}
+        {/* Show Sidebar for all dashboard pages except the landing page */}
+        {isDashboard && <Sidebar collapsed={collapsed} setCollapsed={setCollapsed} />}
+
+        <div className={`flex-1 flex flex-col transition-all ${isDashboard ? (collapsed ? "ml-16" : "ml-64") : ""}`}>
+          {/* Show Navbar & Footer only on Landing Page */}
           {!isDashboard && <Navbar />}
           <main className="flex-1">{children}</main>
           {!isDashboard && <Footer />}
