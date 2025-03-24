@@ -14,8 +14,10 @@ export default function Login() {
   const [formData, setFormData] = useState({ email: "", password: "" });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [showInstallPrompt, setShowInstallPrompt] = useState(false);
+  const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
 
-  // Prevent already logged-in users from accessing login page
+  // Prevent logged-in users from accessing login page
   useEffect(() => {
     const checkAuth = async () => {
       const { data: session } = await supabase.auth.getSession();
@@ -25,6 +27,31 @@ export default function Login() {
     };
     checkAuth();
   }, [router]);
+
+  // Detect mobile and show "Add to Home Screen" prompt
+  useEffect(() => {
+    const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+
+    if (isMobile) {
+      window.addEventListener("beforeinstallprompt", (e) => {
+        e.preventDefault();
+        setDeferredPrompt(e);
+        setShowInstallPrompt(true);
+      });
+
+      // iOS workaround (since Apple doesn’t support beforeinstallprompt)
+      if (navigator.userAgent.includes("iPhone") || navigator.userAgent.includes("iPad")) {
+        setShowInstallPrompt(true);
+      }
+    }
+  }, []);
+
+  const handleInstall = () => {
+    if (deferredPrompt) {
+      deferredPrompt.prompt();
+      deferredPrompt.userChoice.then(() => setShowInstallPrompt(false));
+    }
+  };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -65,7 +92,7 @@ export default function Login() {
             placeholder="Email"
             value={formData.email}
             onChange={handleChange}
-            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 text-lg"
             required
           />
           <input
@@ -74,18 +101,39 @@ export default function Login() {
             placeholder="Password"
             value={formData.password}
             onChange={handleChange}
-            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 text-lg"
             required
           />
           <button
             type="submit"
             disabled={loading}
-            className="w-full py-3 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition"
+            className="w-full py-3 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition text-lg"
           >
             {loading ? "Logging in..." : "Log In"}
           </button>
         </form>
       </div>
+
+      {/* Add to Home Screen Pop-up */}
+      {showInstallPrompt && (
+        <div className="fixed bottom-5 left-5 right-5 bg-white p-4 shadow-lg rounded-lg border border-gray-200 flex flex-col items-center space-y-2">
+          <p className="text-gray-800 text-sm text-center">
+            Add Procezly to your home screen for quick access.
+          </p>
+          {deferredPrompt ? (
+            <button
+              onClick={handleInstall}
+              className="px-4 py-2 bg-blue-600 text-white font-semibold rounded-lg shadow-md hover:bg-blue-700 transition"
+            >
+              Add to Home Screen
+            </button>
+          ) : (
+            <p className="text-gray-600 text-xs">
+              On iPhone: Tap <strong>Share</strong> → <strong>Add to Home Screen</strong>.
+            </p>
+          )}
+        </div>
+      )}
     </div>
   );
 }

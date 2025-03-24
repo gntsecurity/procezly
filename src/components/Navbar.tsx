@@ -7,6 +7,7 @@ import { motion } from "framer-motion";
 export default function Navbar() {
   const [scrolling, setScrolling] = useState(false);
   const [isBannerVisible, setIsBannerVisible] = useState(true);
+  const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -14,6 +15,10 @@ export default function Navbar() {
     };
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  useEffect(() => {
+    setIsMobile(window.innerWidth < 768);
   }, []);
 
   const closeBanner = () => {
@@ -27,15 +32,8 @@ export default function Navbar() {
         <div className="bg-yellow-500 text-white text-sm py-2 text-center flex justify-between px-6 items-center fixed top-0 left-0 right-0 z-50">
           <span>
             Procezly.io is currently under construction. Backend features are not yet functional.
-            Procezly is a product of GNT Security. For more info, contact{" "}
-            <a href="mailto:gsmith@gntsecurity.com" className="underline">
-              gsmith@gntsecurity.com
-            </a>.
           </span>
-          <button
-            onClick={closeBanner}
-            className="ml-4 text-gray-900 font-bold hover:text-white transition"
-          >
+          <button onClick={closeBanner} className="ml-4 text-gray-900 font-bold hover:text-white transition">
             ✕
           </button>
         </div>
@@ -52,31 +50,23 @@ export default function Navbar() {
           <Link href="/">Procezly</Link>
         </motion.div>
 
-        {/* Right-side Buttons */}
+        {/* Right-side Buttons (Responsive) */}
         <div className="flex space-x-4">
-          {/* Book a Demo */}
-          <Link href="/demo">
-            <motion.button
-              whileHover={{ scale: 1.05 }}
-              transition={{ duration: 0.15 }}
-              className="px-5 py-2 text-blue-600 font-semibold border border-blue-600 rounded-lg bg-white 
-              hover:bg-blue-600 hover:text-white transition-all focus:ring-2 focus:ring-blue-400"
-            >
-              Book a Demo
-            </motion.button>
-          </Link>
+          {!isMobile && (
+            <>
+              <Link href="/demo">
+                <motion.button className="px-5 py-2 text-blue-600 font-semibold border border-blue-600 rounded-lg bg-white hover:bg-blue-600 hover:text-white transition">
+                  Book a Demo
+                </motion.button>
+              </Link>
 
-          {/* Log In */}
-          <Link href="/login">
-            <motion.button
-              whileHover={{ scale: 1.05 }}
-              transition={{ duration: 0.15 }}
-              className="px-5 py-2 font-semibold text-gray-900 bg-white rounded-lg 
-              hover:text-blue-600 transition-all focus:ring-2 focus:ring-blue-400"
-            >
-              Log In
-            </motion.button>
-          </Link>
+              <Link href="/login">
+                <motion.button className="px-5 py-2 font-semibold text-gray-900 bg-white rounded-lg hover:text-blue-600 transition">
+                  Log In
+                </motion.button>
+              </Link>
+            </>
+          )}
         </div>
       </nav>
     </div>
