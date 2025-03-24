@@ -1,14 +1,3 @@
-// next.config.ts
-const nextConfig = {
-  output: "export",
-  experimental: {
-    serverActions: true,
-  },
-};
-
-export default nextConfig;
-
-// package.json
 {
   "name": "procezly",
   "version": "0.1.0",
