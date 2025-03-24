@@ -1,9 +1,8 @@
 import { Resend } from 'resend';
-import type { PagesFunction } from '@cloudflare/workers-types';
 
 const resend = new Resend('re_beuFz6Am_Gwq7Szc5LJwGKsxWSyesty43');
 
-export const onRequestPost: PagesFunction = async ({ request }) => {
+export const onRequestPost = async ({ request }: { request: Request }) => {
   try {
     const { name, email, company, industry, message } = await request.json();
 
