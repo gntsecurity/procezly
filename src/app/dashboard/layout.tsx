@@ -3,7 +3,6 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@supabase/supabase-js";
-import Sidebar from "../../components/Sidebar"; // Ensure this path is correct
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
