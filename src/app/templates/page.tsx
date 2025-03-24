@@ -5,7 +5,7 @@ import { supabase } from "../../utils/supabaseClient";
 import { FileText, Search, PlusCircle } from "lucide-react";
 
 const AuditTemplates = () => {
-  const [templates, setTemplates] = useState([]);
+  const [templates, setTemplates] = useState<any[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
 
   // Fetch audit templates from Supabase
