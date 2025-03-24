@@ -4,9 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@supabase/supabase-js";
 import SidebarLink from "./SidebarLink";
-import {
-  Home, ClipboardList, FileText, LogOut, Menu, ChevronDown, ChevronUp
-} from "lucide-react";
+import { Home, LogOut, Menu } from "lucide-react";
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -14,7 +12,6 @@ const supabase = createClient(
 );
 
 const Sidebar = ({ collapsed, setCollapsed }: { collapsed: boolean; setCollapsed: (value: boolean) => void }) => {
-  const [auditOpen, setAuditOpen] = useState(false);
   const router = useRouter();
 
   const handleLogout = async () => {
