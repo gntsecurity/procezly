@@ -27,26 +27,28 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   }, []);
 
   // ✅ Only show the sidebar for dashboard-related pages
-  const isDashboardPage = pathname.startsWith("/dashboard") || 
-                          pathname.startsWith("/audits") ||
-                          pathname.startsWith("/reports") ||
-                          pathname.startsWith("/history") ||
-                          pathname.startsWith("/corrective-actions") ||
-                          pathname.startsWith("/compliance") ||
-                          pathname.startsWith("/templates") ||
-                          pathname.startsWith("/ai-insights") ||
-                          pathname.startsWith("/users") ||
-                          pathname.startsWith("/organizations") ||
-                          pathname.startsWith("/workflows") ||
-                          pathname.startsWith("/integrations") ||
-                          pathname.startsWith("/security") ||
-                          pathname.startsWith("/settings");
+  const isDashboardPage = [
+    "/dashboard",
+    "/audits",
+    "/reports",
+    "/history",
+    "/corrective-actions",
+    "/compliance",
+    "/templates",
+    "/ai-insights",
+    "/users",
+    "/organizations",
+    "/workflows",
+    "/integrations",
+    "/security",
+    "/settings",
+  ].some((path) => pathname.startsWith(path));
 
   // ✅ Authentication check
   useEffect(() => {
     const checkAuth = async () => {
-      const { data: session } = await supabase.auth.getSession();
-      if (!session?.session && isDashboardPage) {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session && isDashboardPage) {
         router.push("/login");
       }
       setLoading(false);
@@ -63,6 +65,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en">
       <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
         <link rel="manifest" href="/manifest.json" />
         <meta name="theme-color" content="#0a2540" />
       </head>

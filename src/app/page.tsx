@@ -11,9 +11,9 @@ export default function Home() {
 
   const bgShift = useTransform(scrollYProgress, [0, 1], ["0%", "-30%"]);
 
-  // Ensure the page loads at the top
+  // Ensure the page loads at the top (improved smoothness)
   useEffect(() => {
-    window.scrollTo(0, 0);
+    setTimeout(() => window.scrollTo(0, 0), 100);
   }, []);
 
   return (
@@ -36,7 +36,7 @@ export default function Home() {
           <motion.div
             initial={{ opacity: 0, x: -50 }}
             animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.8 }}
+            transition={{ duration: 0.8, ease: "easeOut" }}
             className="space-y-8"
           >
             <h1 className="text-7xl font-extrabold tracking-tight leading-[1.1] text-gray-900">
@@ -51,7 +51,7 @@ export default function Home() {
           <motion.div
             initial={{ opacity: 0, x: 50 }}
             animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.8, delay: 0.3 }}
+            transition={{ duration: 0.8, delay: 0.3, ease: "easeOut" }}
             className="w-full flex flex-col space-y-6"
           >
             {[
@@ -77,7 +77,7 @@ export default function Home() {
         <motion.h2
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8 }}
+          transition={{ duration: 0.8, ease: "easeOut" }}
           className="text-6xl font-bold text-center text-gray-900"
         >
           Real-Time <span className="text-blue-600">Compliance Insights</span>
@@ -86,7 +86,7 @@ export default function Home() {
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8 }}
+          transition={{ duration: 0.8, ease: "easeOut" }}
           className="w-full max-w-[1200px] mx-auto shadow-xl rounded-2xl overflow-hidden border bg-white p-6"
         >
           <FauxDashboard />
@@ -98,7 +98,7 @@ export default function Home() {
         <motion.h2
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8 }}
+          transition={{ duration: 0.8, ease: "easeOut" }}
           className="text-6xl font-bold text-gray-900"
         >
           Transform Compliance with <span className="text-blue-600">AI-Powered Automation</span>
