@@ -1,4 +1,5 @@
 import { Resend } from 'resend';
+import type { PagesFunction } from '@cloudflare/workers-types';
 
 const resend = new Resend('re_beuFz6Am_Gwq7Szc5LJwGKsxWSyesty43');
 
