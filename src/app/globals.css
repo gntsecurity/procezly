@@ -2,30 +2,69 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Ensure the page can scroll properly */
 html, body {
-  margin: 0;
-  padding: 0;
   height: 100%;
   width: 100%;
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
   background-color: white;
-  overflow-x: hidden; /* ✅ Fix horizontal scroll */
+  color: #111;
+  font-family: 'Inter', sans-serif;
 }
 
+/* Ensure full height on flex layouts */
 body {
   display: flex;
   flex-direction: column;
 }
 
-main {
-  flex: 1;
-}
-
-/* ✅ Ensure Navbar sticks properly */
+/* Fix Navbar */
 .navbar {
   position: fixed;
-  top: 0;
   width: 100%;
+  top: 0;
+  left: 0;
+  z-index: 50;
   background: white;
-  z-index: 100;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+}
+
+/* Page Content */
+.content {
+  flex: 1;
+  padding-top: 80px; /* Prevents content from being hidden behind Navbar */
+}
+
+/* Mobile Fixes */
+@media (max-width: 768px) {
+  html {
+    font-size: 14px;
+  }
+
+  body {
+    padding-bottom: 80px;
+  }
+
+  .container {
+    max-width: 100%;
+    padding: 0 16px;
+  }
+
+  .navbar {
+    height: 60px;
+    padding: 8px;
+  }
+}
+
+/* Smooth Scrolling */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Prevent Flashing of Unstyled Content */
+* {
+  transition: all 0.3s ease-in-out;
 }
