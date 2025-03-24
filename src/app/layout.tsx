@@ -17,7 +17,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   const router = useRouter();
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [collapsed, setCollapsed] = useState(false);
 
   // Define dashboard-related pages that require authentication
   const isDashboard = [
@@ -63,11 +62,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en">
       <body className="min-h-screen flex">
-        {/* Show Sidebar for dashboard pages */}
-        {isDashboard && <Sidebar collapsed={collapsed} setCollapsed={setCollapsed} />}
-
-        <div className={`flex-1 flex flex-col transition-all ${isDashboard ? (collapsed ? "ml-16" : "ml-64") : ""}`}>
-          {/* Show Navbar & Footer only on Landing Page */}
+        <div className="flex-1 flex flex-col transition-all">
+          {/* ✅ Navbar & Footer only on public pages */}
           {!isDashboard && <Navbar />}
           <main className="flex-1">{children}</main>
           {!isDashboard && <Footer />}
