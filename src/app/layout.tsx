@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { createClient } from "@supabase/supabase-js";
 import Sidebar from "../components/Sidebar";
-import "./globals.css"; // ✅ Keep global styles
+import "./globals.css";
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -18,7 +18,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   const [loading, setLoading] = useState(true);
   const [collapsed, setCollapsed] = useState(false);
 
-  // Define which pages need the Sidebar (dashboard-related pages)
+  // ✅ Only show the sidebar for dashboard-related pages
   const isDashboardPage = pathname.startsWith("/dashboard") || 
                           pathname.startsWith("/audits") ||
                           pathname.startsWith("/reports") ||
@@ -34,7 +34,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                           pathname.startsWith("/security") ||
                           pathname.startsWith("/settings");
 
-  // Authentication check
+  // ✅ Authentication check
   useEffect(() => {
     const checkAuth = async () => {
       const { data: session } = await supabase.auth.getSession();
@@ -52,7 +52,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     checkAuth();
   }, [router, pathname, isDashboardPage]);
 
-  // Show loading screen while checking authentication
+  // ✅ Show loading screen while checking authentication
   if (loading) {
     return <div className="h-screen flex items-center justify-center text-gray-600">Loading...</div>;
   }
@@ -60,13 +60,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en">
       <body className="min-h-screen flex">
-        {/* ✅ Sidebar only appears on dashboard pages */}
+        {/* ✅ Sidebar renders ONLY ONCE for dashboard pages */}
         {isDashboardPage && <Sidebar collapsed={collapsed} setCollapsed={setCollapsed} />}
 
-        {/* ✅ Remove Navbar & Footer from dashboard pages */}
+        {/* ✅ Dashboard pages DO NOT have Navbar/Footer */}
         <div className={`flex-1 flex flex-col transition-all ${isDashboardPage ? (collapsed ? "ml-16" : "ml-64") : ""}`}>
-          {!isDashboardPage && <main className="flex-1">{children}</main>}
-          {isDashboardPage && children} {/* ✅ Directly render dashboard pages without Navbar/Footer */}
+          {children} {/* ✅ Directly render page content */}
         </div>
       </body>
     </html>
