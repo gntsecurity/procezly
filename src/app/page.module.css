@@ -1,0 +1,11 @@
+.dashboard-container {
+  @apply flex flex-col h-screen w-full bg-white px-6 py-4;
+}
+
+.sidebar {
+  @apply fixed top-0 left-0 h-screen w-64 bg-white shadow-md border-r flex flex-col justify-between transition-all;
+}
+
+.content {
+  @apply flex-1 overflow-y-auto h-full w-full p-6;
+}
