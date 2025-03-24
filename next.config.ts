@@ -1,7 +1,8 @@
+// next.config.ts
 const nextConfig = {
   output: "export",
   experimental: {
-    serverActions: true,
+    serverActions: {}, // Fix: Should be an object, not a boolean
   },
 };
 
