@@ -1,6 +1,7 @@
 "use client";
 
 import Navbar from "../components/Navbar";
+import Footer from "../components/Footer";
 import FauxDashboard from "../components/FauxDashboard";
 import { motion, useScroll, useTransform } from "framer-motion";
 import { useRef, useEffect } from "react";
