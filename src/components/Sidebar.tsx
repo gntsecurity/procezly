@@ -3,11 +3,14 @@
 import { useState } from "react";
 import Link from "next/link";
 
-export default function Sidebar() {
-  const [collapsed, setCollapsed] = useState(false);
+interface SidebarProps {
+  collapsed: boolean;
+  setCollapsed: (value: boolean) => void;
+}
 
+export default function Sidebar({ collapsed, setCollapsed }: SidebarProps) {
   return (
-    <div className={`h-screen bg-white shadow-md border-r transition-all ${collapsed ? "w-16" : "w-64"}`}>
+    <div className={`h-screen fixed top-0 left-0 bg-white shadow-md border-r transition-all ${collapsed ? "w-16" : "w-64"}`}>
       <button
         onClick={() => setCollapsed(!collapsed)}
         className="p-2 text-gray-600 hover:bg-gray-200 rounded-md w-full text-left"

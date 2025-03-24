@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { createClient } from "@supabase/supabase-js";
 import Sidebar from "../components/Sidebar";
-import "../app/globals.css"; // Ensure this is imported
+import "./globals.css";
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -67,7 +67,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       </head>
       <body className="min-h-screen flex">
         {isDashboardPage && <Sidebar collapsed={collapsed} setCollapsed={setCollapsed} />}
-        <div className="main-content">{children}</div>
+        <div className={`flex-1 flex flex-col transition-all ${isDashboardPage ? (collapsed ? "ml-16" : "ml-64") : ""}`}>
+          {children}
+        </div>
       </body>
     </html>
   );
