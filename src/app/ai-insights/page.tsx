@@ -5,7 +5,7 @@ import { supabase } from "../../utils/supabaseClient";
 import { Brain, Search, Filter, AlertTriangle } from "lucide-react";
 
 const AIComplianceInsights = () => {
-  const [insights, setInsights] = useState([]);
+  const [insights, setInsights] = useState<any[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [filterRisk, setFilterRisk] = useState("All");
 
