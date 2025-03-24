@@ -9,13 +9,18 @@ interface SidebarProps {
 }
 
 export default function Sidebar({ collapsed, setCollapsed }: SidebarProps) {
+  const [isExpanded, setIsExpanded] = useState(!collapsed);
+
   return (
-    <div className={`h-screen fixed top-0 left-0 bg-white shadow-md border-r transition-all ${collapsed ? "w-16" : "w-64"}`}>
+    <div className={`h-screen fixed top-0 left-0 bg-white shadow-md border-r transition-all ${isExpanded ? "w-64" : "w-16"}`}>
       <button
-        onClick={() => setCollapsed(!collapsed)}
+        onClick={() => {
+          setCollapsed(!isExpanded);
+          setIsExpanded(!isExpanded);
+        }}
         className="p-2 text-gray-600 hover:bg-gray-200 rounded-md w-full text-left"
       >
-        {collapsed ? "➕ Expand" : "➖ Collapse"}
+        {isExpanded ? "➖ Collapse" : "➕ Expand"}
       </button>
 
       <nav className="mt-4">
