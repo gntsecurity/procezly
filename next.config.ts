@@ -1,14 +1,10 @@
 /** @type {import('next').NextConfig} */
-const withPWA = require("next-pwa")({
-  dest: "public",
-  register: true,
-  skipWaiting: true,
-});
-
-const nextConfig = withPWA({
+const nextConfig = {
+  output: "export", // ✅ Enables static export for Cloudflare Pages
   reactStrictMode: true,
-  output: "export", // ✅ Ensures static export for Cloudflare Pages
-  trailingSlash: true, // ✅ Helps Cloudflare recognize routes correctly
-});
+  experimental: {
+    appDir: true,
+  },
+};
 
-module.exports = nextConfig;
+export default nextConfig;
