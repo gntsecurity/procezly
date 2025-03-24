@@ -71,7 +71,7 @@ export default function Footer() {
           )}
           <p className="text-gray-500 text-sm mt-2">
             By subscribing you agree to our{" "}
-            <a href="#" className="text-blue-600 hover:underline">
+            <a href="/privacy-policy" className="text-blue-600 hover:underline">
               Privacy Policy
             </a>{" "}
             and consent to receive updates from our company.
@@ -90,9 +90,6 @@ export default function Footer() {
           </a>
           <a href="/terms" className="text-gray-500 hover:underline">
             Terms of Service
-          </a>
-          <a href="/cookies" className="text-gray-500 hover:underline">
-            Cookie Settings
           </a>
         </div>
       </div>
