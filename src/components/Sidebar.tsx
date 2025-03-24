@@ -16,7 +16,6 @@ const supabase = createClient(
 const Sidebar = ({ collapsed, setCollapsed }: { collapsed: boolean; setCollapsed: (value: boolean) => void }) => {
   const [auditOpen, setAuditOpen] = useState(false);
   const router = useRouter();
-  const [isMobile, setIsMobile] = useState(typeof window !== "undefined" && window.innerWidth < 768);
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
@@ -25,14 +24,12 @@ const Sidebar = ({ collapsed, setCollapsed }: { collapsed: boolean; setCollapsed
 
   return (
     <>
-      {isMobile && (
-        <button
-          onClick={() => setCollapsed(!collapsed)}
-          className="fixed top-4 left-4 bg-gray-200 p-3 rounded-lg shadow-md z-50 md:hidden"
-        >
-          <Menu size={24} />
-        </button>
-      )}
+      <button
+        onClick={() => setCollapsed(!collapsed)}
+        className="fixed top-4 left-4 bg-gray-200 p-3 rounded-lg shadow-md z-50 md:hidden"
+      >
+        <Menu size={24} />
+      </button>
 
       <div
         className={`h-screen bg-white border-r shadow-md flex flex-col justify-between fixed top-0 left-0 z-40 transition-all ${
@@ -51,19 +48,6 @@ const Sidebar = ({ collapsed, setCollapsed }: { collapsed: boolean; setCollapsed
 
           <nav className="flex flex-col space-y-2 mt-4">
             <SidebarLink href="/dashboard" icon={<Home size={22} className="text-gray-800" />} label="Dashboard" collapsed={collapsed} />
-            <button onClick={() => setAuditOpen(!auditOpen)} className="flex items-center justify-between p-3 hover:bg-gray-100 rounded-md">
-              <div className="flex items-center">
-                <ClipboardList size={22} className="text-gray-800" />
-                {!collapsed && <span className="ml-3 text-sm font-medium">Auditing</span>}
-              </div>
-              {!collapsed && (auditOpen ? <ChevronUp size={16} /> : <ChevronDown size={16} />)}
-            </button>
-            {auditOpen && !collapsed && (
-              <div className="ml-6 flex flex-col space-y-1">
-                <SidebarLink href="/audits" icon={<ClipboardList size={20} className="text-gray-800" />} label="Kamishibai Audits" collapsed={collapsed} />
-                <SidebarLink href="/reports" icon={<FileText size={20} className="text-gray-800" />} label="Audit Reports" collapsed={collapsed} />
-              </div>
-            )}
           </nav>
         </div>
 
