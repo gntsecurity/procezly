@@ -2,7 +2,6 @@
 
 import Navbar from "../components/Navbar";
 import FauxDashboard from "../components/FauxDashboard";
-import { ClipboardCheck, FileCheck, Workflow, ShieldCheck, BarChart3, Eye } from "lucide-react";
 import { motion, useScroll, useTransform } from "framer-motion";
 import { useRef, useEffect } from "react";
 
@@ -56,17 +55,16 @@ export default function Home() {
             className="w-full flex flex-col space-y-6"
           >
             {[
-              { icon: FileCheck, label: "Digital Audit Logs" },
-              { icon: Workflow, label: "Automated Workflows" },
-              { icon: ShieldCheck, label: "Enterprise-Grade Security" },
-              { icon: BarChart3, label: "AI-Powered Analytics" },
-            ].map(({ icon: Icon, label }, i) => (
+              "Digital Audit Logs",
+              "Automated Workflows",
+              "Enterprise-Grade Security",
+              "AI-Powered Analytics",
+            ].map((label, i) => (
               <motion.div
                 key={i}
                 whileHover={{ scale: 1.05 }}
                 className="flex items-center space-x-6 p-6 bg-white/50 backdrop-blur-md rounded-2xl shadow-xl transition-transform"
               >
-                <Icon className="h-10 w-10 text-blue-600" />
                 <p className="text-lg font-semibold text-gray-900">{label}</p>
               </motion.div>
             ))}
@@ -95,7 +93,7 @@ export default function Home() {
         </motion.div>
       </section>
 
-      {/* AI-Powered Call to Action (Restored) */}
+      {/* AI-Powered Call to Action */}
       <section className="w-full max-w-[1400px] px-12 py-40 mx-auto text-center space-y-12 bg-gray-50 rounded-3xl shadow-lg">
         <motion.h2
           initial={{ opacity: 0, y: 20 }}

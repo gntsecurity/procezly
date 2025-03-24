@@ -2,19 +2,15 @@
 
 import Link from "next/link";
 
-const SidebarLink = ({
-  href,
-  icon,
-  label,
-  collapsed,
-  isLogout,
-}: {
+interface SidebarLinkProps {
   href: string;
   icon: React.ReactNode;
   label: string;
   collapsed: boolean;
   isLogout?: boolean;
-}) => {
+}
+
+const SidebarLink: React.FC<SidebarLinkProps> = ({ href, icon, label, collapsed, isLogout }) => {
   return (
     <Link
       href={href}
@@ -25,13 +21,7 @@ const SidebarLink = ({
       }`}
     >
       <div className="flex items-center justify-center w-8 h-8">{icon}</div>
-      <span
-        className={`text-sm font-medium transition-all ${
-          collapsed ? "hidden" : "block"
-        }`}
-      >
-        {label}
-      </span>
+      {!collapsed && <span className="text-sm font-medium">{label}</span>}
     </Link>
   );
 };

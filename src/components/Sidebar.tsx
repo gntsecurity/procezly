@@ -1,14 +1,12 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@supabase/supabase-js";
-import Link from "next/link";
-import {
-  Home, ClipboardList, FileText, AlertTriangle, Users, Settings, LogOut, Menu,
-  ShieldCheck, Building, Brain, Workflow, Plug, Lock, ChevronDown, ChevronUp
-} from "lucide-react";
 import SidebarLink from "./SidebarLink";
+import {
+  Home, ClipboardList, FileText, LogOut, Menu, ChevronDown, ChevronUp
+} from "lucide-react";
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -17,15 +15,8 @@ const supabase = createClient(
 
 const Sidebar = ({ collapsed, setCollapsed }: { collapsed: boolean; setCollapsed: (value: boolean) => void }) => {
   const [auditOpen, setAuditOpen] = useState(false);
-  const [complianceOpen, setComplianceOpen] = useState(false);
-  const [managementOpen, setManagementOpen] = useState(false);
-  const [settingsOpen, setSettingsOpen] = useState(false);
   const router = useRouter();
-  const [isMobile, setIsMobile] = useState(false);
-
-  useEffect(() => {
-    setIsMobile(window.innerWidth < 768);
-  }, []);
+  const [isMobile, setIsMobile] = useState(typeof window !== "undefined" && window.innerWidth < 768);
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
@@ -34,7 +25,6 @@ const Sidebar = ({ collapsed, setCollapsed }: { collapsed: boolean; setCollapsed
 
   return (
     <>
-      {/* Mobile Sidebar Toggle Button */}
       {isMobile && (
         <button
           onClick={() => setCollapsed(!collapsed)}
@@ -44,14 +34,12 @@ const Sidebar = ({ collapsed, setCollapsed }: { collapsed: boolean; setCollapsed
         </button>
       )}
 
-      {/* Sidebar */}
       <div
         className={`h-screen bg-white border-r shadow-md flex flex-col justify-between fixed top-0 left-0 z-40 transition-all ${
           collapsed ? "-translate-x-full" : "translate-x-0"
         } md:w-72 w-64 md:static`}
       >
         <div>
-          {/* Branding */}
           <div className="p-4 flex items-center justify-between">
             <span className="text-2xl font-bold uppercase tracking-wide text-gray-800">
               Procezly
@@ -61,11 +49,8 @@ const Sidebar = ({ collapsed, setCollapsed }: { collapsed: boolean; setCollapsed
             </button>
           </div>
 
-          {/* Core Sections */}
           <nav className="flex flex-col space-y-2 mt-4">
             <SidebarLink href="/dashboard" icon={<Home size={22} className="text-gray-800" />} label="Dashboard" collapsed={collapsed} />
-
-            {/* Auditing Dropdown */}
             <button onClick={() => setAuditOpen(!auditOpen)} className="flex items-center justify-between p-3 hover:bg-gray-100 rounded-md">
               <div className="flex items-center">
                 <ClipboardList size={22} className="text-gray-800" />
@@ -82,7 +67,6 @@ const Sidebar = ({ collapsed, setCollapsed }: { collapsed: boolean; setCollapsed
           </nav>
         </div>
 
-        {/* Logout */}
         <div className="p-4">
           <button onClick={handleLogout} className="flex items-center text-red-600 hover:underline">
             <LogOut size={22} />

@@ -14,7 +14,6 @@ const supabase = createClient(
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [loading, setLoading] = useState(true);
   const [collapsed, setCollapsed] = useState(false);
 
@@ -47,13 +46,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   useEffect(() => {
     const checkAuth = async () => {
       const { data: session } = await supabase.auth.getSession();
-      if (session?.session) {
-        setIsAuthenticated(true);
-      } else {
-        setIsAuthenticated(false);
-        if (isDashboardPage) {
-          router.push("/login");
-        }
+      if (!session?.session && isDashboardPage) {
+        router.push("/login");
       }
       setLoading(false);
     };

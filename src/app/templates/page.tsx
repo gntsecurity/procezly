@@ -1,80 +1,49 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { supabase } from "../../utils/supabaseClient";
-import { FileText, Search, PlusCircle } from "lucide-react";
+import { useState } from "react";
+import { motion } from "framer-motion";
 
-const AuditTemplates = () => {
-  const [templates, setTemplates] = useState<any[]>([]);
-  const [searchQuery, setSearchQuery] = useState("");
+export default function Templates() {
+  const [searchQuery, setSearchQuery] = useState<string>("");
 
-  // Fetch audit templates from Supabase
-  useEffect(() => {
-    const fetchTemplates = async () => {
-      const { data, error } = await supabase.from("audit_templates").select("*");
-      if (error) console.error("Error fetching audit templates:", error);
-      else setTemplates(data || []);
-    };
-    fetchTemplates();
-  }, []);
-
-  // Search Logic
-  const filteredTemplates = templates.filter((template) =>
-    template.name.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const templates = [
+    { id: 1, name: "ISO 9001 Audit Template", category: "Compliance" },
+    { id: 2, name: "Safety Inspection Checklist", category: "Safety" },
+    { id: 3, name: "Environmental Assessment Form", category: "Environmental" },
+  ];
 
   return (
-    <div className="p-6">
-      <h1 className="text-3xl font-semibold text-gray-900">Audit Templates</h1>
-      <p className="text-gray-600 mt-2">Manage standardized audit templates for consistency.</p>
+    <div className="min-h-screen p-6 bg-white">
+      <h1 className="text-4xl font-bold text-gray-900 mb-6">Audit Templates</h1>
 
-      {/* Controls: Search & Create Template */}
-      <div className="flex items-center justify-between mt-6">
-        <div className="relative">
-          <Search className="absolute left-3 top-2.5 text-gray-400" size={18} />
-          <input
-            type="text"
-            placeholder="Search templates..."
-            className="pl-10 pr-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-          />
-        </div>
-
-        <button
-          className="flex items-center space-x-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition"
-        >
-          <PlusCircle size={20} />
-          <span>Create Template</span>
-        </button>
+      {/* Search Bar */}
+      <div className="mb-6">
+        <input
+          type="text"
+          placeholder="Search templates..."
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          className="w-full px-4 py-2 border border-gray-300 rounded-lg"
+        />
       </div>
 
-      {/* Template List */}
-      <div className="mt-6 bg-white p-6 rounded-lg shadow-md">
-        <h2 className="text-xl font-semibold text-gray-900 mb-4">Audit Template Library</h2>
-        <table className="w-full border-collapse">
-          <thead>
-            <tr className="bg-gray-100">
-              <th className="text-left px-4 py-2">ID</th>
-              <th className="text-left px-4 py-2">Template Name</th>
-              <th className="text-left px-4 py-2">Category</th>
-              <th className="text-left px-4 py-2">Last Updated</th>
-            </tr>
-          </thead>
-          <tbody>
-            {filteredTemplates.map((template) => (
-              <tr key={template.id} className="border-t">
-                <td className="px-4 py-2">{template.id}</td>
-                <td className="px-4 py-2">{template.name}</td>
-                <td className="px-4 py-2">{template.category}</td>
-                <td className="px-4 py-2">{template.updated_at}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+      {/* Templates List */}
+      <div className="space-y-4">
+        {templates
+          .filter((template) => template.name.toLowerCase().includes(searchQuery.toLowerCase()))
+          .map((template) => (
+            <motion.div
+              key={template.id}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.3 }}
+              className="p-4 bg-gray-100 rounded-lg shadow flex justify-between"
+            >
+              <p className="text-gray-800">{template.name}</p>
+              <span className="text-gray-500">{template.category}</span>
+            </motion.div>
+          ))}
       </div>
     </div>
   );
-};
-
-export default AuditTemplates;
+}
