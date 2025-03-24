@@ -1,7 +1,8 @@
-/** @type {import('next').NextConfig} */
 const nextConfig = {
-  output: "export", // ✅ Enables static export for Cloudflare Pages
-  reactStrictMode: true,
+  output: "export",
+  experimental: {
+    serverActions: true,
+  },
 };
 
 export default nextConfig;

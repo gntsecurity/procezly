@@ -1,12 +1,22 @@
+// next.config.ts
+const nextConfig = {
+  output: "export",
+  experimental: {
+    serverActions: true,
+  },
+};
+
+export default nextConfig;
+
+// package.json
 {
   "name": "procezly",
   "version": "0.1.0",
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "next build --no-lint",
-    "start": "next start",
-    "export": "next build && next export"
+    "build": "next build",
+    "start": "next start"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.49.1",
