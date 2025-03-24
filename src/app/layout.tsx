@@ -21,7 +21,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   const [collapsed, setCollapsed] = useState(false);
 
   // Define dashboard-related pages that require the sidebar
-  const isDashboard = pathname.startsWith("/dashboard") || pathname.startsWith("/audits") ||
+  const isDashboard = pathname.startsWith("/audits") ||
                       pathname.startsWith("/reports") || pathname.startsWith("/history") ||
                       pathname.startsWith("/corrective-actions") || pathname.startsWith("/compliance") ||
                       pathname.startsWith("/templates") || pathname.startsWith("/ai-insights") ||
