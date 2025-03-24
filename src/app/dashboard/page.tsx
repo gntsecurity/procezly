@@ -1,41 +1,99 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { supabase } from "../../utils/supabaseClient";
+import { ClipboardList, ShieldCheck, Users, AlertTriangle, CheckCircle, Clock, FileText } from "lucide-react";
 
-export default function Dashboard() {
-  const [dataLoaded, setDataLoaded] = useState(false);
+const Dashboard = () => {
+  const [dashboardData, setDashboardData] = useState({
+    totalAudits: 0,
+    ongoingAudits: 0,
+    completedAudits: 0,
+    failedAudits: 0,
+    complianceScore: 0,
+    expiringCertifications: 0,
+    activeUsers: 0,
+    recentActivity: [],
+  });
+
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+
+  useEffect(() => {
+    const checkAuth = async () => {
+      const { data: session } = await supabase.auth.getSession();
+      if (!session?.session) {
+        window.location.href = "/login"; // Redirect to login if unauthenticated
+        return;
+      }
+      setIsAuthenticated(true);
+    };
+
+    const fetchData = async () => {
+      try {
+        const { data: audits } = await supabase.from("audits").select("*");
+        const { data: users } = await supabase.from("users").select("*");
+
+        const totalAudits = audits?.length || 0;
+        const ongoingAudits = audits?.filter((a) => a.status === "Ongoing").length || 0;
+        const completedAudits = audits?.filter((a) => a.status === "Completed").length || 0;
+        const failedAudits = audits?.filter((a) => a.status === "Failed").length || 0;
+        const complianceScore = 87;
+        const expiringCertifications = 3;
+        const activeUsers = users?.length || 0;
+
+        setDashboardData({
+          totalAudits,
+          ongoingAudits,
+          completedAudits,
+          failedAudits,
+          complianceScore,
+          expiringCertifications,
+          activeUsers,
+          recentActivity: [],
+        });
+      } catch (error) {
+        console.error("Error fetching Supabase data:", error);
+      }
+    };
+
+    checkAuth();
+    fetchData();
+  }, []);
+
+  if (!isAuthenticated) {
+    return <div>Loading...</div>;
+  }
 
   return (
-    <div className="main-content">
-      <h1 className="text-3xl font-bold mb-4">Dashboard</h1>
-      <p className="text-gray-600 mb-8">Real-time compliance insights at a glance.</p>
+    <div className="p-6">
+      <h1 className="text-3xl font-semibold text-gray-900">Dashboard</h1>
+      <p className="text-gray-600 mt-2">Live compliance and audit performance tracking.</p>
 
-      {/* Simulating data loading */}
-      <button
-        onClick={() => setDataLoaded(true)}
-        className="px-4 py-2 bg-blue-600 text-white font-semibold rounded-md"
-      >
-        Load Data
-      </button>
-
-      {dataLoaded && (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-6">
-          <div className="p-4 bg-white rounded-xl shadow-lg">
-            <h3 className="text-lg font-semibold">Compliance Audits</h3>
-            <p className="text-gray-500">Track completed and pending audits.</p>
-          </div>
-
-          <div className="p-4 bg-white rounded-xl shadow-lg">
-            <h3 className="text-lg font-semibold">Security Checks</h3>
-            <p className="text-gray-500">Monitor your security compliance.</p>
-          </div>
-
-          <div className="p-4 bg-white rounded-xl shadow-lg">
-            <h3 className="text-lg font-semibold">Alerts</h3>
-            <p className="text-gray-500">Identify critical compliance risks.</p>
-          </div>
-        </div>
-      )}
+      {/* Key Metrics Section */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mt-6">
+        <StatCard icon={<ClipboardList size={28} />} title="Total Audits" value={dashboardData.totalAudits} />
+        <StatCard icon={<Clock size={28} />} title="Ongoing Audits" value={dashboardData.ongoingAudits} />
+        <StatCard icon={<CheckCircle size={28} className="text-green-600" />} title="Completed Audits" value={dashboardData.completedAudits} />
+        <StatCard icon={<AlertTriangle size={28} className="text-red-600" />} title="Failed Audits" value={dashboardData.failedAudits} />
+        <StatCard icon={<ShieldCheck size={28} className="text-blue-600" />} title="Compliance Score" value={`${dashboardData.complianceScore}%`} />
+        <StatCard icon={<FileText size={28} className="text-yellow-600" />} title="Expiring Certifications" value={dashboardData.expiringCertifications} />
+        <StatCard icon={<Users size={28} className="text-indigo-600" />} title="Active Users" value={dashboardData.activeUsers} />
+      </div>
     </div>
   );
-}
+};
+
+// Component for Statistic Cards
+const StatCard = ({ icon, title, value }: { icon: React.ReactNode; title: string; value: string | number }) => {
+  return (
+    <div className="bg-white p-6 rounded-lg shadow-md flex items-center space-x-4 border border-gray-200 hover:shadow-lg transition">
+      <div className="p-3 bg-gray-100 rounded-full">{icon}</div>
+      <div>
+        <p className="text-gray-600 text-sm">{title}</p>
+        <p className="text-xl font-semibold text-gray-900">{value}</p>
+      </div>
+    </div>
+  );
+};
+
+export default Dashboard;

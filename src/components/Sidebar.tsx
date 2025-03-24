@@ -1,39 +1,62 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { createClient } from "@supabase/supabase-js";
+import SidebarLink from "./SidebarLink";
+import { Home, LogOut, Menu } from "lucide-react";
 
-interface SidebarProps {
-  collapsed: boolean;
-  setCollapsed: (value: boolean) => void;
-}
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+);
 
-export default function Sidebar({ collapsed, setCollapsed }: SidebarProps) {
-  const [isExpanded, setIsExpanded] = useState(!collapsed);
+const Sidebar = ({ collapsed, setCollapsed }: { collapsed: boolean; setCollapsed: (value: boolean) => void }) => {
+  const router = useRouter();
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    router.push("/login");
+  };
 
   return (
-    <div className={`h-screen fixed top-0 left-0 bg-white shadow-md border-r transition-all ${isExpanded ? "w-64" : "w-16"}`}>
+    <>
       <button
-        onClick={() => {
-          setCollapsed(!isExpanded);
-          setIsExpanded(!isExpanded);
-        }}
-        className="p-2 text-gray-600 hover:bg-gray-200 rounded-md w-full text-left"
+        onClick={() => setCollapsed(!collapsed)}
+        className="fixed top-4 left-4 bg-gray-200 p-3 rounded-lg shadow-md z-50 md:hidden"
       >
-        {isExpanded ? "➖ Collapse" : "➕ Expand"}
+        <Menu size={24} />
       </button>
 
-      <nav className="mt-4">
-        <Link href="/dashboard">
-          <div className="p-4 hover:bg-gray-200 cursor-pointer">Dashboard</div>
-        </Link>
-        <Link href="/audits">
-          <div className="p-4 hover:bg-gray-200 cursor-pointer">Audits</div>
-        </Link>
-        <Link href="/reports">
-          <div className="p-4 hover:bg-gray-200 cursor-pointer">Reports</div>
-        </Link>
-      </nav>
-    </div>
+      <div
+        className={`h-screen bg-white border-r shadow-md flex flex-col justify-between fixed top-0 left-0 z-40 transition-all ${
+          collapsed ? "-translate-x-full" : "translate-x-0"
+        } md:w-72 w-64 md:static`}
+      >
+        <div>
+          <div className="p-4 flex items-center justify-between">
+            <span className="text-2xl font-bold uppercase tracking-wide text-gray-800">
+              Procezly
+            </span>
+            <button onClick={() => setCollapsed(true)} className="md:hidden p-2 focus:outline-none">
+              ✕
+            </button>
+          </div>
+
+          <nav className="flex flex-col space-y-2 mt-4">
+            <SidebarLink href="/dashboard" icon={<Home size={22} className="text-gray-800" />} label="Dashboard" collapsed={collapsed} />
+          </nav>
+        </div>
+
+        <div className="p-4">
+          <button onClick={handleLogout} className="flex items-center text-red-600 hover:underline">
+            <LogOut size={22} />
+            {!collapsed && <span className="ml-3">Logout</span>}
+          </button>
+        </div>
+      </div>
+    </>
   );
-}
+};
+
+export default Sidebar;
