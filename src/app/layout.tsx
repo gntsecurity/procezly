@@ -4,6 +4,9 @@ import { useEffect, useState } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { createClient } from "@supabase/supabase-js";
 import Sidebar from "../components/Sidebar";
+import Navbar from "../components/Navbar";
+import Footer from "../components/Footer";
+import CookieBanner from "../components/CookieBanner";
 import "./globals.css";
 
 const supabase = createClient(
@@ -17,6 +20,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   const [loading, setLoading] = useState(true);
   const [collapsed, setCollapsed] = useState(false);
 
+  // Only check for /dashboard now
+  const isDashboardPage = pathname.startsWith("/dashboard");
+
   useEffect(() => {
     if ("serviceWorker" in navigator) {
       navigator.serviceWorker.register("/sw.js").then(() => {
@@ -24,23 +30,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       });
     }
   }, []);
-
-  const isDashboardPage = [
-    "/dashboard",
-    "/audits",
-    "/reports",
-    "/history",
-    "/corrective-actions",
-    "/compliance",
-    "/templates",
-    "/ai-insights",
-    "/users",
-    "/organizations",
-    "/workflows",
-    "/integrations",
-    "/security",
-    "/settings",
-  ].some((path) => pathname.startsWith(path));
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -66,9 +55,14 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <meta name="theme-color" content="#0a2540" />
       </head>
       <body className="min-h-screen flex">
-        {isDashboardPage && <Sidebar collapsed={collapsed} setCollapsed={setCollapsed} />}
+        {isDashboardPage && (
+          <Sidebar collapsed={collapsed} setCollapsed={setCollapsed} />
+        )}
         <div className={`flex-1 flex flex-col transition-all ${isDashboardPage ? (collapsed ? "ml-16" : "ml-64") : ""}`}>
+          {!isDashboardPage && <Navbar />}
           {children}
+          {!isDashboardPage && <Footer />}
+          <CookieBanner />
         </div>
       </body>
     </html>
