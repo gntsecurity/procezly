@@ -52,7 +52,14 @@ export default function Signup() {
       return;
     }
 
-    // After successful authentication, insert additional user data into the `users` table
+    // ✅ Check if user ID exists before inserting into the `users` table
+    if (!data?.user?.id) {
+      setError("User creation failed. Please try again.");
+      setLoading(false);
+      return;
+    }
+
+    // Insert additional user data into the `users` table
     const { error: insertError } = await supabase.from("users").insert([
       {
         id: data.user.id, // Link to the Supabase Auth user ID

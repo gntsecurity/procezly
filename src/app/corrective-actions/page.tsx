@@ -5,7 +5,7 @@ import { supabase } from "../../utils/supabaseClient";
 import { AlertTriangle, Search, Filter, UserCheck } from "lucide-react";
 
 const CorrectiveActions = () => {
-  const [actions, setActions] = useState([]);
+  const [actions, setActions] = useState<any[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [filterStatus, setFilterStatus] = useState("All");
 

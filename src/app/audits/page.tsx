@@ -6,7 +6,7 @@ import { PlusCircle, Search, Filter, ClipboardList } from "lucide-react";
 
 const Audits = () => {
   // State for Supabase data
-  const [audits, setAudits] = useState([]);
+  const [audits, setAudits] = useState<any[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [filterStatus, setFilterStatus] = useState("All");
   const [showCreateModal, setShowCreateModal] = useState(false);

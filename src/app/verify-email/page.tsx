@@ -27,13 +27,15 @@ export default function VerifyEmail() {
       }
 
       const { data: user, error: userError } = await supabase.auth.getUser();
-      if (userError || !user || !user.user.email_confirmed_at) {
+      
+      // ✅ Ensure user and email confirmation are properly checked
+      if (userError || !user?.user?.email_confirmed_at) {
         setError("Email not verified. Please check your inbox.");
         setLoading(false);
         return;
       }
 
-      // ✅ Redirect to Organization Setup
+      // ✅ Redirect to Organization Setup if email is verified
       router.push("/org-setup");
     };
 

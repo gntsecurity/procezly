@@ -5,7 +5,7 @@ import { supabase } from "../../utils/supabaseClient";
 import { FileText, Download, Search } from "lucide-react";
 
 const AuditReports = () => {
-  const [reports, setReports] = useState([]);
+  const [reports, setReports] = useState<any[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [filterStatus, setFilterStatus] = useState("All");
 

@@ -15,9 +15,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   useEffect(() => {
     const checkAuth = async () => {
       const { data: session } = await supabase.auth.getSession();
-      if (!session?.session) {
-        router.push("/login"); // Redirect if not logged in
-      }
+if (!session || !session.session) {
+    router.push("/login");
+}
     };
 
     checkAuth();

@@ -5,7 +5,7 @@ import { supabase } from "../../utils/supabaseClient";
 import { ShieldCheck, Search, Filter } from "lucide-react";
 
 const ISOStandards = () => {
-  const [isoStandards, setISOStandards] = useState([]);
+  const [isoStandards, setISOStandards] = useState<any[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [filterStatus, setFilterStatus] = useState("All");
 
