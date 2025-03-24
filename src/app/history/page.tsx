@@ -5,7 +5,7 @@ import { supabase } from "../../utils/supabaseClient";
 import { ClipboardList, Search, Filter } from "lucide-react";
 
 const AuditHistory = () => {
-  const [history, setHistory] = useState([]);
+  const [history, setHistory] = useState<any[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [filterStatus, setFilterStatus] = useState("All");
 
