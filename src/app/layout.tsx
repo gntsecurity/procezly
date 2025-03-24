@@ -1,16 +1,26 @@
 "use client";
 
-import { useState } from "react";
-import { usePathname } from "next/navigation";
+import { useEffect, useState } from "react";
+import { useRouter, usePathname } from "next/navigation";
+import { createClient } from "@supabase/supabase-js";
 import Sidebar from "../components/Sidebar";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import "./globals.css";
 
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+);
+
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
-  
-  // ✅ Ensure all dashboard-related pages only show the sidebar
+  const router = useRouter();
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [collapsed, setCollapsed] = useState(false);
+
+  // Define dashboard-related pages that require authentication
   const isDashboard = [
     "/dashboard",
     "/audits",
@@ -28,8 +38,28 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     "/settings"
   ].some((route) => pathname.startsWith(route));
 
-  // ✅ Sidebar Collapse State (Ensures it works)
-  const [collapsed, setCollapsed] = useState(false);
+  // Authentication check
+  useEffect(() => {
+    const checkAuth = async () => {
+      const { data: session } = await supabase.auth.getSession();
+      if (session?.session) {
+        setIsAuthenticated(true);
+      } else {
+        setIsAuthenticated(false);
+        if (isDashboard) {
+          router.push("/login");
+        }
+      }
+      setLoading(false);
+    };
+
+    checkAuth();
+  }, [router, pathname, isDashboard]);
+
+  // Show loading screen while checking authentication
+  if (loading) {
+    return <div className="h-screen flex items-center justify-center text-gray-600">Loading...</div>;
+  }
 
   return (
     <html lang="en">

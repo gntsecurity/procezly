@@ -77,18 +77,6 @@ export default function Navbar() {
               Log In
             </motion.button>
           </Link>
-
-          {/* Get Started */}
-          <Link href="/signup">
-            <motion.button
-              whileHover={{ scale: 1.05 }}
-              transition={{ duration: 0.15 }}
-              className="px-6 py-2 bg-blue-600 text-white font-bold rounded-lg shadow-md 
-              hover:bg-blue-700 hover:shadow-lg transition-all focus:ring-2 focus:ring-blue-400"
-            >
-              Get Started
-            </motion.button>
-          </Link>
         </div>
       </nav>
     </div>

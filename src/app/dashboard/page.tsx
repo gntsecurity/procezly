@@ -17,8 +17,19 @@ const Dashboard = () => {
     recentActivity: []
   });
 
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+
   // Fetch Data from Supabase
   useEffect(() => {
+    const checkAuth = async () => {
+      const { data: session } = await supabase.auth.getSession();
+      if (!session?.session) {
+        window.location.href = "/login"; // Redirect to login if unauthenticated
+        return;
+      }
+      setIsAuthenticated(true);
+    };
+
     const fetchData = async () => {
       try {
         const { data: audits } = await supabase.from("audits").select("*");
@@ -48,8 +59,13 @@ const Dashboard = () => {
       }
     };
 
+    checkAuth();
     fetchData();
   }, []);
+
+  if (!isAuthenticated) {
+    return <div>Loading...</div>;
+  }
 
   return (
     <div className="p-6">
