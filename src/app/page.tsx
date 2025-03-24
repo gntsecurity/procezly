@@ -1,7 +1,6 @@
 "use client";
 
 import Navbar from "../components/Navbar";
-import Footer from "../components/Footer";
 import FauxDashboard from "../components/FauxDashboard";
 import { motion } from "framer-motion";
 
@@ -89,8 +88,6 @@ export default function Home() {
           </div>
         </section>
       </main>
-
-      <Footer />
     </div>
   );
 }
