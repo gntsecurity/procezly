@@ -11,7 +11,8 @@ const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 );
 
-const Sidebar = ({ collapsed, setCollapsed }: { collapsed: boolean; setCollapsed: (value: boolean) => void }) => {
+const Sidebar = () => {
+  const [collapsed, setCollapsed] = useState(false);
   const router = useRouter();
 
   const handleLogout = async () => {
@@ -44,14 +45,14 @@ const Sidebar = ({ collapsed, setCollapsed }: { collapsed: boolean; setCollapsed
           </div>
 
           <nav className="flex flex-col space-y-2 mt-4">
-            <SidebarLink href="/dashboard" icon={<Home size={22} className="text-gray-800" />} label="Dashboard" collapsed={collapsed} />
+            <SidebarLink href="/dashboard" icon={<Home size={22} className="text-gray-800" />} label="Dashboard" />
           </nav>
         </div>
 
         <div className="p-4">
           <button onClick={handleLogout} className="flex items-center text-red-600 hover:underline">
             <LogOut size={22} />
-            {!collapsed && <span className="ml-3">Logout</span>}
+            <span className="ml-3">Logout</span>
           </button>
         </div>
       </div>
