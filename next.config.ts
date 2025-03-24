@@ -7,8 +7,10 @@ const withPWA = require("next-pwa")({
 
 const nextConfig = withPWA({
   reactStrictMode: true,
+  output: "export", // ✅ Forces static export for Cloudflare Pages
+  trailingSlash: true, // ✅ Helps Cloudflare recognize routes
   experimental: {
-    appDir: true,
+    appDir: true, // ✅ Required for Next.js App Router
   },
 });
 
