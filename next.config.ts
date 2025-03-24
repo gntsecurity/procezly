@@ -1,10 +1,15 @@
-import { NextConfig } from 'next';
+/** @type {import('next').NextConfig} */
+const withPWA = require("next-pwa")({
+  dest: "public",
+  register: true,
+  skipWaiting: true,
+});
 
-const nextConfig: NextConfig = {
-  output: 'export', // Ensures Next.js exports static files
-  distDir: '.next', // Default Next.js build directory
-  trailingSlash: true, // Ensures all routes work properly
-  reactStrictMode: true, // Recommended for better debugging
-};
+const nextConfig = withPWA({
+  reactStrictMode: true,
+  experimental: {
+    appDir: true,
+  },
+});
 
-export default nextConfig;
+module.exports = nextConfig;

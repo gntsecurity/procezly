@@ -18,6 +18,15 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   const [loading, setLoading] = useState(true);
   const [collapsed, setCollapsed] = useState(false);
 
+  // ✅ Register Service Worker for PWA
+  useEffect(() => {
+    if ("serviceWorker" in navigator) {
+      navigator.serviceWorker.register("/sw.js").then(() => {
+        console.log("Service Worker Registered");
+      });
+    }
+  }, []);
+
   // ✅ Only show the sidebar for dashboard-related pages
   const isDashboardPage = pathname.startsWith("/dashboard") || 
                           pathname.startsWith("/audits") ||
@@ -59,6 +68,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 
   return (
     <html lang="en">
+      <head>
+        <link rel="manifest" href="/manifest.json" />
+      </head>
       <body className="min-h-screen flex">
         {/* ✅ Sidebar renders ONLY ONCE for dashboard pages */}
         {isDashboardPage && <Sidebar collapsed={collapsed} setCollapsed={setCollapsed} />}
