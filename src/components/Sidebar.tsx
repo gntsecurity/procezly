@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { supabase } from "../utils/supabaseClient";
-import { Home, LogOut, Menu, ClipboardList } from "lucide-react";
+import { Home, LogOut, Menu, ClipboardList, CheckCircle } from "lucide-react";
 import { useEffect, useState } from "react";
 
 interface SidebarProps {
@@ -37,9 +37,9 @@ const Sidebar: React.FC<SidebarProps> = ({ collapsed, setCollapsed }) => {
           <ClipboardList size={22} />
           <span className="text-xs mt-1">Kamishibai</span>
         </a>
-	<a href="/submissions" className="flex items-center space-x-3 p-2 rounded-md hover:bg-gray-100">
-        <CheckCircle size={22} className="text-gray-800" />
-        {!collapsed && <span>Submissions</span>}
+        <a href="/submissions" className="flex flex-col items-center text-sm text-gray-700 hover:text-blue-600">
+          <CheckCircle size={22} />
+          <span className="text-xs mt-1">Submissions</span>
         </a>
         <button
           onClick={handleLogout}
@@ -79,6 +79,10 @@ const Sidebar: React.FC<SidebarProps> = ({ collapsed, setCollapsed }) => {
           <a href="/kamishibai" className="flex items-center space-x-3 p-2 rounded-md hover:bg-gray-100">
             <ClipboardList size={22} className="text-gray-800" />
             {!collapsed && <span>Kamishibai</span>}
+          </a>
+          <a href="/submissions" className="flex items-center space-x-3 p-2 rounded-md hover:bg-gray-100">
+            <CheckCircle size={22} className="text-gray-800" />
+            {!collapsed && <span>Submissions</span>}
           </a>
         </nav>
       </div>

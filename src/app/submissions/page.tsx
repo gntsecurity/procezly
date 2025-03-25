@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { supabase } from "../../utils/supabaseClient";
-import { CheckCircle, Loader, Plus, Send } from "lucide-react";
+import { CheckCircle, Loader, Send } from "lucide-react";
 
 interface Submission {
   id?: string;
@@ -65,14 +65,16 @@ const SubmissionsPage = () => {
       }));
 
       setSubmissions(
-        isAdmin ? withCardNames : withCardNames.filter((s) => s.user_id === uid)
+        roleData.role === "admin"
+          ? withCardNames
+          : withCardNames.filter((s) => s.user_id === uid)
       );
 
       setLoading(false);
     };
 
     init();
-  }, []);
+  }, [isAdmin]);
 
   const handleSubmit = async () => {
     if (!orgId || !userId) return;
