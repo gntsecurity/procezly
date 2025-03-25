@@ -3,15 +3,14 @@
 import Navbar from "../components/Navbar";
 import FauxDashboard from "../components/FauxDashboard";
 import { motion } from "framer-motion";
+import { ShieldCheck, Zap, FileText, BarChart3 } from "lucide-react";
 
 export default function Home() {
   return (
     <div className="flex flex-col min-h-screen bg-white text-gray-900 relative overflow-hidden">
       <Navbar />
 
-      {/* Hero */}
       <main className="flex-1 w-full max-w-[1400px] mx-auto px-6 md:px-12 pt-40 space-y-32">
-        {/* Section: Hero */}
         <section className="grid grid-cols-1 md:grid-cols-2 items-center gap-20">
           <motion.div
             initial={{ opacity: 0, x: -50 }}
@@ -23,7 +22,7 @@ export default function Home() {
               The Future of <span className="text-blue-600">Kamishibai Auditing</span>
             </h1>
             <p className="text-lg text-gray-700 max-w-xl">
-              AI-powered compliance automation with real-time monitoring, digital workflows, and enterprise-grade security—built for precision manufacturing.
+              Compliance automation with real-time monitoring, streamlined workflows, and enterprise-grade security—built for precision manufacturing.
             </p>
             <div className="flex space-x-4 pt-4">
               <a href="/demo" className="px-6 py-3 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition">
@@ -41,20 +40,24 @@ export default function Home() {
             transition={{ duration: 0.7, delay: 0.2 }}
             className="w-full max-w-md mx-auto"
           >
-            <div className="rounded-2xl shadow-lg bg-white/60 backdrop-blur-md border p-6">
-              <ul className="space-y-4">
-                {["Digital Audit Logs", "Automated Workflows", "Enterprise-Grade Security", "AI-Powered Analytics"].map((feature, i) => (
-                  <li key={i} className="flex items-center space-x-3">
-                    <div className="w-2.5 h-2.5 rounded-full bg-blue-600"></div>
-                    <span className="text-gray-800 text-md">{feature}</span>
-                  </li>
-                ))}
-              </ul>
+            <div className="rounded-2xl shadow-xl bg-white border border-gray-200 p-8 space-y-6">
+              {[
+                { icon: <FileText className="w-5 h-5 text-blue-600" />, label: "Digital Audit Logs" },
+                { icon: <Zap className="w-5 h-5 text-blue-600" />, label: "Automated Workflows" },
+                { icon: <ShieldCheck className="w-5 h-5 text-blue-600" />, label: "Enterprise-Grade Security" },
+                { icon: <BarChart3 className="w-5 h-5 text-blue-600" />, label: "Analytics & Insights" },
+              ].map((item, i) => (
+                <div key={i} className="flex items-center space-x-4">
+                  <div className="flex items-center justify-center w-10 h-10 bg-blue-50 rounded-full">
+                    {item.icon}
+                  </div>
+                  <span className="text-gray-800 font-medium">{item.label}</span>
+                </div>
+              ))}
             </div>
           </motion.div>
         </section>
 
-        {/* Section: Live Dashboard Preview */}
         <section className="space-y-12">
           <motion.h2
             initial={{ opacity: 0, y: 20 }}
@@ -68,7 +71,34 @@ export default function Home() {
           <FauxDashboard />
         </section>
 
-        {/* Section: Call to Action */}
+        <section className="grid md:grid-cols-3 gap-12 border-t border-gray-200 pt-20">
+          {[
+            {
+              title: "Streamlined Compliance",
+              desc: "Automate audit scheduling, tracking, and documentation—freeing up your teams for what matters most.",
+            },
+            {
+              title: "Built for Scale",
+              desc: "From small teams to enterprise deployments, Procezly adapts to your compliance needs without friction.",
+            },
+            {
+              title: "Secure by Design",
+              desc: "Enterprise-grade security, role-based access controls, and audit trails built in from day one.",
+            },
+          ].map((block, i) => (
+            <motion.div
+              key={i}
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: i * 0.2 }}
+              className="space-y-4"
+            >
+              <h4 className="text-xl font-semibold">{block.title}</h4>
+              <p className="text-gray-600">{block.desc}</p>
+            </motion.div>
+          ))}
+        </section>
+
         <section className="text-center py-20 border-t border-gray-200">
           <motion.h3
             initial={{ opacity: 0, y: 20 }}
