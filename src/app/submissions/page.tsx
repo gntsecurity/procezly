@@ -10,13 +10,14 @@ interface Submission {
   status: string;
   notes: string;
   submitted_at?: string;
-  card_name?: string;
+  card_uid?: string;
+  user_email?: string;
 }
 
 interface Card {
   id: string;
-  area: string;
   uid: string;
+  area: string;
 }
 
 const SubmissionsPage = () => {
@@ -49,28 +50,24 @@ const SubmissionsPage = () => {
 
       const { data: cardData } = await supabase
         .from("kamishibai_cards")
-        .select("id, area, uid")
+        .select("id, uid, area")
         .eq("organization_id", roleData.organization_id);
 
       setCards(cardData || []);
 
       const { data: submissionData } = await supabase
         .from("submissions")
-        .select("*, kamishibai_cards(area, uid)")
+        .select("*, kamishibai_cards(uid), users(email)")
         .eq("organization_id", roleData.organization_id)
         .order("submitted_at", { ascending: false });
 
-      const withCardNames = (submissionData || []).map((s) => ({
+      const mapped = (submissionData || []).map((s) => ({
         ...s,
-        card_name: s.kamishibai_cards?.area || s.kamishibai_cards?.uid || "Unknown",
+        card_uid: s.kamishibai_cards?.uid || "Unknown",
+        user_email: s.users?.email || "Unknown",
       }));
 
-      setSubmissions(
-        roleData.role === "admin"
-          ? withCardNames
-          : withCardNames.filter((s) => s.user_id === uid)
-      );
-
+      setSubmissions(isAdmin ? mapped : mapped.filter((s) => s.user_id === uid));
       setLoading(false);
     };
 
@@ -92,18 +89,17 @@ const SubmissionsPage = () => {
 
     const { data: updated } = await supabase
       .from("submissions")
-      .select("*, kamishibai_cards(area, uid)")
+      .select("*, kamishibai_cards(uid), users(email)")
       .eq("organization_id", orgId)
       .order("submitted_at", { ascending: false });
 
-    const withCardNames = (updated || []).map((s) => ({
+    const mapped = (updated || []).map((s) => ({
       ...s,
-      card_name: s.kamishibai_cards?.area || s.kamishibai_cards?.uid || "Unknown",
+      card_uid: s.kamishibai_cards?.uid || "Unknown",
+      user_email: s.users?.email || "Unknown",
     }));
 
-    setSubmissions(
-      isAdmin ? withCardNames : withCardNames.filter((s) => s.user_id === userId)
-    );
+    setSubmissions(isAdmin ? mapped : mapped.filter((s) => s.user_id === userId));
   };
 
   if (loading) {
@@ -168,18 +164,20 @@ const SubmissionsPage = () => {
         <table className="min-w-full divide-y divide-gray-200 text-sm">
           <thead className="bg-gray-50">
             <tr>
-              <th className="px-4 py-2 text-left text-gray-600">Card</th>
+              <th className="px-4 py-2 text-left text-gray-600">Card UID</th>
               <th className="px-4 py-2 text-left text-gray-600">Status</th>
               <th className="px-4 py-2 text-left text-gray-600">Notes</th>
+              <th className="px-4 py-2 text-left text-gray-600">Submitted By</th>
               <th className="px-4 py-2 text-left text-gray-600">Date</th>
             </tr>
           </thead>
           <tbody>
             {submissions.map((s) => (
               <tr key={s.id} className="hover:bg-gray-50">
-                <td className="px-4 py-2 text-gray-900">{s.card_name}</td>
+                <td className="px-4 py-2 text-gray-900">{s.card_uid}</td>
                 <td className="px-4 py-2 text-gray-900">{s.status}</td>
                 <td className="px-4 py-2 text-gray-900">{s.notes}</td>
+                <td className="px-4 py-2 text-gray-900">{s.user_email}</td>
                 <td className="px-4 py-2 text-gray-900">
                   {new Date(s.submitted_at!).toLocaleString()}
                 </td>
@@ -187,7 +185,7 @@ const SubmissionsPage = () => {
             ))}
             {submissions.length === 0 && (
               <tr>
-                <td colSpan={4} className="px-4 py-4 text-center text-gray-500">
+                <td colSpan={5} className="px-4 py-4 text-center text-gray-500">
                   No submissions found.
                 </td>
               </tr>
