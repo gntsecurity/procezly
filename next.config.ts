@@ -1,9 +1,8 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  output: "export",
   experimental: {
-    serverActions: {}, // Fix: Should be an object, not a boolean
+    serverActions: {}, // this is still good
   },
   webpack: (config) => {
     config.module.rules.push({
