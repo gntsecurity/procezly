@@ -11,7 +11,6 @@ import {
   Clock,
   FileText,
 } from "lucide-react";
-import { motion } from "framer-motion";
 
 const Dashboard = () => {
   const [dashboardData, setDashboardData] = useState({
@@ -74,25 +73,13 @@ const Dashboard = () => {
   }
 
   return (
-    <div className="p-4 sm:p-6 max-w-6xl mx-auto">
-      <motion.h1
-        initial={{ opacity: 0, y: -10 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6 }}
-        className="text-3xl sm:text-4xl font-bold text-gray-900"
-      >
-        Dashboard
-      </motion.h1>
-      <motion.p
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 0.2, duration: 0.6 }}
-        className="text-gray-600 text-sm sm:text-base mt-1"
-      >
+    <div className="p-4 sm:p-6">
+      <h1 className="text-2xl sm:text-3xl font-semibold text-gray-900">Dashboard</h1>
+      <p className="text-gray-600 text-sm sm:text-base mt-1">
         Live compliance and audit performance tracking.
-      </motion.p>
+      </p>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mt-8">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6 mt-6">
         <StatCard icon={<ClipboardList size={26} />} title="Total Audits" value={dashboardData.totalAudits} />
         <StatCard icon={<Clock size={26} />} title="Ongoing Audits" value={dashboardData.ongoingAudits} />
         <StatCard icon={<CheckCircle size={26} className="text-green-600" />} title="Completed Audits" value={dashboardData.completedAudits} />
@@ -115,19 +102,13 @@ const StatCard = ({
   value: string | number;
 }) => {
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 10 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true }}
-      transition={{ duration: 0.5 }}
-      className="bg-white/70 backdrop-blur-md border border-gray-200 rounded-xl p-5 flex items-center shadow-md hover:shadow-lg transition-all"
-    >
-      <div className="p-3 bg-gray-100 rounded-full shadow-sm mr-4">{icon}</div>
+    <div className="bg-white p-4 sm:p-6 rounded-lg shadow-sm flex items-center space-x-4 border border-gray-200 hover:shadow-md transition">
+      <div className="p-3 bg-gray-100 rounded-full">{icon}</div>
       <div>
-        <p className="text-sm text-gray-500 font-medium">{title}</p>
-        <p className="text-xl font-bold text-gray-900">{value}</p>
+        <p className="text-gray-600 text-sm">{title}</p>
+        <p className="text-lg sm:text-xl font-semibold text-gray-900">{value}</p>
       </div>
-    </motion.div>
+    </div>
   );
 };
 
