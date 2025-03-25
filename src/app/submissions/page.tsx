@@ -10,6 +10,7 @@ interface Submission {
   status: string;
   notes: string;
   submitted_at?: string;
+  user_id: string;
   card_uid?: string;
   user_email?: string;
 }
@@ -17,7 +18,11 @@ interface Submission {
 interface Card {
   id: string;
   uid: string;
-  area: string;
+}
+
+interface User {
+  id: string;
+  email: string;
 }
 
 const SubmissionsPage = () => {
@@ -25,6 +30,7 @@ const SubmissionsPage = () => {
   const [orgId, setOrgId] = useState<string | null>(null);
   const [userId, setUserId] = useState<string | null>(null);
   const [cards, setCards] = useState<Card[]>([]);
+  const [users, setUsers] = useState<User[]>([]);
   const [submissions, setSubmissions] = useState<Submission[]>([]);
   const [form, setForm] = useState({ card_id: "", status: "", notes: "" });
   const [loading, setLoading] = useState(true);
@@ -33,7 +39,6 @@ const SubmissionsPage = () => {
     const init = async () => {
       const { data: user } = await supabase.auth.getUser();
       if (!user?.user?.id) return;
-
       const uid = user.user.id;
       setUserId(uid);
 
@@ -44,35 +49,36 @@ const SubmissionsPage = () => {
         .single();
 
       if (!roleData) return;
-
       setIsAdmin(roleData.role === "admin");
       setOrgId(roleData.organization_id);
 
-      const { data: cardData } = await supabase
-        .from("kamishibai_cards")
-        .select("id, uid, area")
-        .eq("organization_id", roleData.organization_id);
+      const [{ data: cardData }, { data: userData }, { data: submissionData }] = await Promise.all([
+        supabase.from("kamishibai_cards").select("id, uid").eq("organization_id", roleData.organization_id),
+        supabase.from("users").select("id, email"),
+        supabase
+          .from("submissions")
+          .select("*")
+          .eq("organization_id", roleData.organization_id)
+          .order("submitted_at", { ascending: false }),
+      ]);
 
-      setCards(cardData || []);
+      const cardMap = Object.fromEntries((cardData || []).map((c) => [c.id, c.uid]));
+      const userMap = Object.fromEntries((userData || []).map((u) => [u.id, u.email]));
 
-      const { data: submissionData } = await supabase
-        .from("submissions")
-        .select("*, kamishibai_cards(uid), users(email)")
-        .eq("organization_id", roleData.organization_id)
-        .order("submitted_at", { ascending: false });
-
-      const mapped = (submissionData || []).map((s) => ({
+      const withMeta = (submissionData || []).map((s) => ({
         ...s,
-        card_uid: s.kamishibai_cards?.uid || "Unknown",
-        user_email: s.users?.email || "Unknown",
+        card_uid: cardMap[s.card_id] || "Unknown",
+        user_email: userMap[s.user_id] || "Unknown",
       }));
 
-      setSubmissions(isAdmin ? mapped : mapped.filter((s) => s.user_id === uid));
+      setCards(cardData || []);
+      setUsers(userData || []);
+      setSubmissions(isAdmin ? withMeta : withMeta.filter((s) => s.user_id === uid));
       setLoading(false);
     };
 
     init();
-  }, [isAdmin]);
+  }, []);
 
   const handleSubmit = async () => {
     if (!orgId || !userId) return;
@@ -89,17 +95,20 @@ const SubmissionsPage = () => {
 
     const { data: updated } = await supabase
       .from("submissions")
-      .select("*, kamishibai_cards(uid), users(email)")
+      .select("*")
       .eq("organization_id", orgId)
       .order("submitted_at", { ascending: false });
 
-    const mapped = (updated || []).map((s) => ({
+    const cardMap = Object.fromEntries(cards.map((c) => [c.id, c.uid]));
+    const userMap = Object.fromEntries(users.map((u) => [u.id, u.email]));
+
+    const withMeta = (updated || []).map((s) => ({
       ...s,
-      card_uid: s.kamishibai_cards?.uid || "Unknown",
-      user_email: s.users?.email || "Unknown",
+      card_uid: cardMap[s.card_id] || "Unknown",
+      user_email: userMap[s.user_id] || "Unknown",
     }));
 
-    setSubmissions(isAdmin ? mapped : mapped.filter((s) => s.user_id === userId));
+    setSubmissions(isAdmin ? withMeta : withMeta.filter((s) => s.user_id === userId));
   };
 
   if (loading) {
