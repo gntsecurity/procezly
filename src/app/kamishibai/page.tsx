@@ -7,9 +7,15 @@ import { Pencil, Trash2, Plus } from "lucide-react";
 interface KamishibaiCard {
   id: string;
   uid: string;
-  name: string;
-  description: string;
-  department_owner: string;
+  area: string;
+  task: string;
+  tips?: string;
+  supporting_documents?: string;
+  non_conformance?: string;
+  responsible: string;
+  safety_concerns?: string;
+  modified_by?: string;
+  modified?: string;
 }
 
 const KamishibaiPage = () => {
@@ -37,15 +43,13 @@ const KamishibaiPage = () => {
         .from("kamishibai_cards")
         .select("*")
         .eq("organization_id", roleData.organization_id)
-        .order("created_at", { ascending: false });
+        .order("modified", { ascending: false });
 
       setCards(cards || []);
     };
 
     fetchData();
   }, []);
-
-  if (orgId) orgId.toString();
 
   const handleDelete = async (id: string) => {
     if (!confirm("Delete this card?")) return;
@@ -70,9 +74,9 @@ const KamishibaiPage = () => {
           <thead className="bg-gray-50">
             <tr>
               <th className="px-4 py-2 text-left text-gray-600">UID</th>
-              <th className="px-4 py-2 text-left text-gray-600">Name</th>
-              <th className="px-4 py-2 text-left text-gray-600">Department Owner</th>
-              <th className="px-4 py-2 text-left text-gray-600">Description</th>
+              <th className="px-4 py-2 text-left text-gray-600">Area</th>
+              <th className="px-4 py-2 text-left text-gray-600">Task</th>
+              <th className="px-4 py-2 text-left text-gray-600">Responsible</th>
               {isAdmin && <th className="px-4 py-2 text-right text-gray-600">Actions</th>}
             </tr>
           </thead>
@@ -80,9 +84,9 @@ const KamishibaiPage = () => {
             {cards.map((card) => (
               <tr key={card.id} className="hover:bg-gray-50">
                 <td className="px-4 py-2 text-gray-900">{card.uid}</td>
-                <td className="px-4 py-2 text-gray-900">{card.name}</td>
-                <td className="px-4 py-2 text-gray-900">{card.department_owner}</td>
-                <td className="px-4 py-2 text-gray-900">{card.description}</td>
+                <td className="px-4 py-2 text-gray-900">{card.area}</td>
+                <td className="px-4 py-2 text-gray-900">{card.task}</td>
+                <td className="px-4 py-2 text-gray-900">{card.responsible}</td>
                 {isAdmin && (
                   <td className="px-4 py-2 text-right space-x-2">
                     <button className="text-blue-600 hover:text-blue-800">
