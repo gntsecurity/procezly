@@ -16,6 +16,7 @@ const KamishibaiPage = () => {
   const [cards, setCards] = useState<KamishibaiCard[]>([]);
   const [isAdmin, setIsAdmin] = useState(false);
   const [orgId, setOrgId] = useState<string | null>(null);
+  const [userId, setUserId] = useState<string | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
   const [formData, setFormData] = useState<KamishibaiCard>({
     uid: "",
@@ -27,27 +28,39 @@ const KamishibaiPage = () => {
 
   useEffect(() => {
     const fetchData = async () => {
-      const { data: user } = await supabase.auth.getUser();
-      if (!user?.user?.id) return;
+      const { data: user, error: userError } = await supabase.auth.getUser();
+      if (userError || !user?.user?.id) {
+        console.error("Auth error:", userError);
+        return;
+      }
 
-      const { data: roleData } = await supabase
+      setUserId(user.user.id);
+
+      const { data: roleData, error: roleError } = await supabase
         .from("roles")
         .select("role, organization_id")
         .eq("user_id", user.user.id)
         .single();
 
-      if (!roleData) return;
+      if (roleError || !roleData) {
+        console.error("Role fetch error:", roleError);
+        return;
+      }
 
       setIsAdmin(roleData.role === "admin");
       setOrgId(roleData.organization_id);
 
-      const { data: cards } = await supabase
+      const { data: cardsData, error: cardError } = await supabase
         .from("kamishibai_cards")
         .select("*")
         .eq("organization_id", roleData.organization_id)
         .order("created_at", { ascending: false });
 
-      setCards(cards || []);
+      if (cardError) {
+        console.error("Card fetch error:", cardError);
+      }
+
+      setCards(cardsData || []);
     };
 
     fetchData();
@@ -55,7 +68,11 @@ const KamishibaiPage = () => {
 
   const handleDelete = async (id: string) => {
     if (!confirm("Delete this card?")) return;
-    await supabase.from("kamishibai_cards").delete().eq("id", id);
+    const { error } = await supabase.from("kamishibai_cards").delete().eq("id", id);
+    if (error) {
+      console.error("Delete error:", error);
+      return;
+    }
     setCards(cards.filter((card) => card.id !== id));
   };
 
@@ -71,28 +88,39 @@ const KamishibaiPage = () => {
   };
 
   const saveCard = async () => {
-    if (!orgId) return;
+    if (!orgId || !userId) return;
 
     const payload = {
       ...formData,
       organization_id: orgId,
+      created_by: userId,
     };
 
+    let error;
     if (editId) {
-      await supabase.from("kamishibai_cards").update(payload).eq("id", editId);
+      ({ error } = await supabase.from("kamishibai_cards").update(payload).eq("id", editId));
     } else {
-      await supabase.from("kamishibai_cards").insert(payload);
+      ({ error } = await supabase.from("kamishibai_cards").insert(payload));
+    }
+
+    if (error) {
+      console.error("Save error:", error);
+      return;
     }
 
     setModalOpen(false);
     setFormData({ uid: "", name: "", description: "", department_owner: "" });
     setEditId(null);
 
-    const { data: updated } = await supabase
+    const { data: updated, error: refreshError } = await supabase
       .from("kamishibai_cards")
       .select("*")
       .eq("organization_id", orgId)
       .order("created_at", { ascending: false });
+
+    if (refreshError) {
+      console.error("Refresh error:", refreshError);
+    }
 
     setCards(updated || []);
   };
