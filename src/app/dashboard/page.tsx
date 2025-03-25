@@ -73,20 +73,20 @@ const Dashboard = () => {
   }
 
   return (
-    <div className="p-4 sm:p-6 w-full max-w-7xl mx-auto">
-      <h1 className="text-2xl sm:text-3xl font-semibold text-gray-900">Dashboard</h1>
+    <div className="px-4 pt-4 sm:px-6 sm:pt-6 w-full max-w-7xl mx-auto">
+      <h1 className="text-xl sm:text-3xl font-semibold text-gray-900">Dashboard</h1>
       <p className="text-gray-600 text-sm sm:text-base mt-1">
         Live compliance and audit performance tracking.
       </p>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6 mt-6">
-        <StatCard icon={<ClipboardList size={26} />} title="Total Audits" value={dashboardData.totalAudits} />
-        <StatCard icon={<Clock size={26} />} title="Ongoing Audits" value={dashboardData.ongoingAudits} />
-        <StatCard icon={<CheckCircle size={26} className="text-green-600" />} title="Completed Audits" value={dashboardData.completedAudits} />
-        <StatCard icon={<AlertTriangle size={26} className="text-red-600" />} title="Failed Audits" value={dashboardData.failedAudits} />
-        <StatCard icon={<ShieldCheck size={26} className="text-blue-600" />} title="Compliance Score" value={`${dashboardData.complianceScore}%`} />
-        <StatCard icon={<FileText size={26} className="text-yellow-600" />} title="Expiring Certifications" value={dashboardData.expiringCertifications} />
-        <StatCard icon={<Users size={26} className="text-indigo-600" />} title="Active Users" value={dashboardData.activeUsers} />
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 sm:gap-6 mt-6">
+        <StatCard icon={<ClipboardList size={24} />} title="Total Audits" value={dashboardData.totalAudits} />
+        <StatCard icon={<Clock size={24} />} title="Ongoing Audits" value={dashboardData.ongoingAudits} />
+        <StatCard icon={<CheckCircle size={24} className="text-green-600" />} title="Completed Audits" value={dashboardData.completedAudits} />
+        <StatCard icon={<AlertTriangle size={24} className="text-red-600" />} title="Failed Audits" value={dashboardData.failedAudits} />
+        <StatCard icon={<ShieldCheck size={24} className="text-blue-600" />} title="Compliance Score" value={`${dashboardData.complianceScore}%`} />
+        <StatCard icon={<FileText size={24} className="text-yellow-600" />} title="Expiring Certifications" value={dashboardData.expiringCertifications} />
+        <StatCard icon={<Users size={24} className="text-indigo-600" />} title="Active Users" value={dashboardData.activeUsers} />
       </div>
     </div>
   );
@@ -102,11 +102,11 @@ const StatCard = ({
   value: string | number;
 }) => {
   return (
-    <div className="bg-white p-4 sm:p-6 rounded-lg shadow-sm flex items-center space-x-4 border border-gray-200 hover:shadow-md transition">
-      <div className="p-3 bg-gray-100 rounded-full">{icon}</div>
-      <div>
-        <p className="text-gray-600 text-sm">{title}</p>
-        <p className="text-lg sm:text-xl font-semibold text-gray-900">{value}</p>
+    <div className="bg-white px-4 py-3 sm:p-6 rounded-lg shadow-sm flex items-center space-x-4 border border-gray-200 hover:shadow-md transition">
+      <div className="p-2 sm:p-3 bg-gray-100 rounded-full">{icon}</div>
+      <div className="flex flex-col justify-center">
+        <p className="text-xs sm:text-sm text-gray-600">{title}</p>
+        <p className="text-base sm:text-xl font-semibold text-gray-900">{value}</p>
       </div>
     </div>
   );
