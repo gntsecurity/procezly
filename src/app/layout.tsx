@@ -75,8 +75,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <Sidebar collapsed={collapsed} setCollapsed={setCollapsed} />
           )}
 
-          <div className={`flex flex-col flex-1 transition-all duration-300 ease-in-out ${isDashboardPage ? (collapsed ? "ml-16" : "ml-64") : ""}`}>
-            {!isDashboardPage && !isMobile && <Navbar />}
+          <div className={`flex flex-col flex-1 transition-all duration-300 ease-in-out ${isDashboardPage && !isMobile ? (collapsed ? "ml-16" : "ml-64") : ""}`}>
             <main className="flex-1">{children}</main>
             {!isDashboardPage && <Footer />}
             <CookieBanner />
