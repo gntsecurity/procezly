@@ -82,7 +82,7 @@ const Dashboard = () => {
         Hey {userName}, welcome back 👋
       </h1>
       <p className="text-gray-600 text-sm sm:text-base mt-1">
-        Your team is making progress! Here's the latest snapshot.
+        Your team is making progress! Here&apos;s the latest snapshot.
       </p>
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 sm:gap-6 mt-6">
