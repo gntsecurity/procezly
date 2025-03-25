@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { supabase } from "../../utils/supabaseClient";
-import { Pencil, Trash2, Plus } from "lucide-react";
+import { Pencil, Trash2, Plus, X } from "lucide-react";
 
 interface KamishibaiCard {
   id: string;
@@ -22,6 +22,20 @@ const KamishibaiPage = () => {
   const [cards, setCards] = useState<KamishibaiCard[]>([]);
   const [isAdmin, setIsAdmin] = useState(false);
   const [orgId, setOrgId] = useState<string | null>(null);
+  const [userId, setUserId] = useState<string | null>(null);
+  const [modalOpen, setModalOpen] = useState(false);
+  const [formData, setFormData] = useState<Omit<KamishibaiCard, "id">>({
+    uid: "",
+    area: "",
+    task: "",
+    tips: "",
+    supporting_documents: "",
+    non_conformance: "",
+    responsible: "",
+    safety_concerns: "",
+    modified_by: "",
+    modified: "",
+  });
 
   useEffect(() => {
     const fetchData = async () => {
@@ -38,6 +52,7 @@ const KamishibaiPage = () => {
 
       setIsAdmin(roleData.role === "admin");
       setOrgId(roleData.organization_id);
+      setUserId(user.user.id);
 
       const { data: cards } = await supabase
         .from("kamishibai_cards")
@@ -51,13 +66,9 @@ const KamishibaiPage = () => {
     fetchData();
   }, []);
 
-  // ✨ Prevent Cloudflare build failure due to "unused" variable
-  // This ensures orgId stays initialized and doesn't trigger ESLint
+  // Just to satisfy Cloudflare’s ESLint
   useEffect(() => {
-    if (orgId) {
-      // Do nothing yet — orgId will be used soon.
-      console.debug("Organization ID loaded:", orgId);
-    }
+    if (orgId) console.debug("orgId:", orgId);
   }, [orgId]);
 
   const handleDelete = async (id: string) => {
@@ -66,12 +77,54 @@ const KamishibaiPage = () => {
     setCards(cards.filter((card) => card.id !== id));
   };
 
+  const handleSave = async () => {
+    if (!orgId || !userId) return;
+
+    const payload = {
+      ...formData,
+      organization_id: orgId,
+      modified_by: userId,
+      modified: new Date().toISOString(),
+    };
+
+    const { error } = await supabase.from("kamishibai_cards").insert(payload);
+    if (error) {
+      console.error("Insert error:", error);
+      return;
+    }
+
+    setModalOpen(false);
+    setFormData({
+      uid: "",
+      area: "",
+      task: "",
+      tips: "",
+      supporting_documents: "",
+      non_conformance: "",
+      responsible: "",
+      safety_concerns: "",
+      modified_by: "",
+      modified: "",
+    });
+
+    const { data: refreshed } = await supabase
+      .from("kamishibai_cards")
+      .select("*")
+      .eq("organization_id", orgId)
+      .order("modified", { ascending: false });
+
+    setCards(refreshed || []);
+  };
+
   return (
     <div className="px-4 pt-6 sm:px-6 w-full max-w-5xl mx-auto">
       <div className="flex justify-between items-center mb-4">
         <h1 className="text-2xl font-semibold text-gray-900">Kamishibai Cards</h1>
         {isAdmin && (
-          <button className="flex items-center px-3 py-1.5 text-sm bg-blue-600 text-white rounded hover:bg-blue-700 transition">
+          <button
+            onClick={() => setModalOpen(true)}
+            className="flex items-center px-3 py-1.5 text-sm bg-blue-600 text-white rounded hover:bg-blue-700 transition"
+          >
             <Plus size={16} className="mr-1" />
             Add Card
           </button>
@@ -121,6 +174,90 @@ const KamishibaiPage = () => {
           </tbody>
         </table>
       </div>
+
+      {modalOpen && (
+        <div className="fixed inset-0 z-50 bg-black/40 flex items-center justify-center px-4">
+          <div className="bg-white rounded-lg w-full max-w-2xl p-6 relative">
+            <button
+              onClick={() => setModalOpen(false)}
+              className="absolute top-3 right-3 text-gray-400 hover:text-gray-600"
+            >
+              <X size={20} />
+            </button>
+            <h2 className="text-lg font-semibold mb-4">Add New Card</h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <input
+                className="border border-gray-300 rounded px-3 py-2"
+                placeholder="UID"
+                value={formData.uid}
+                onChange={(e) => setFormData({ ...formData, uid: e.target.value })}
+              />
+              <input
+                className="border border-gray-300 rounded px-3 py-2"
+                placeholder="Area"
+                value={formData.area}
+                onChange={(e) => setFormData({ ...formData, area: e.target.value })}
+              />
+              <input
+                className="border border-gray-300 rounded px-3 py-2"
+                placeholder="Responsible"
+                value={formData.responsible}
+                onChange={(e) => setFormData({ ...formData, responsible: e.target.value })}
+              />
+              <input
+                className="border border-gray-300 rounded px-3 py-2"
+                placeholder="Tips"
+                value={formData.tips}
+                onChange={(e) => setFormData({ ...formData, tips: e.target.value })}
+              />
+              <textarea
+                className="border border-gray-300 rounded px-3 py-2 col-span-1 sm:col-span-2"
+                placeholder="Task"
+                value={formData.task}
+                onChange={(e) => setFormData({ ...formData, task: e.target.value })}
+              />
+              <textarea
+                className="border border-gray-300 rounded px-3 py-2 col-span-1 sm:col-span-2"
+                placeholder="Supporting Documents"
+                value={formData.supporting_documents}
+                onChange={(e) =>
+                  setFormData({ ...formData, supporting_documents: e.target.value })
+                }
+              />
+              <textarea
+                className="border border-gray-300 rounded px-3 py-2 col-span-1 sm:col-span-2"
+                placeholder="Non-Conformance"
+                value={formData.non_conformance}
+                onChange={(e) =>
+                  setFormData({ ...formData, non_conformance: e.target.value })
+                }
+              />
+              <textarea
+                className="border border-gray-300 rounded px-3 py-2 col-span-1 sm:col-span-2"
+                placeholder="Safety Concerns"
+                value={formData.safety_concerns}
+                onChange={(e) =>
+                  setFormData({ ...formData, safety_concerns: e.target.value })
+                }
+              />
+            </div>
+            <div className="mt-6 flex justify-end space-x-2">
+              <button
+                onClick={() => setModalOpen(false)}
+                className="px-4 py-2 border rounded text-gray-700 hover:bg-gray-100"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleSave}
+                className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+              >
+                Save
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
