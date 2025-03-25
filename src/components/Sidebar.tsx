@@ -41,6 +41,10 @@ const Sidebar: React.FC<SidebarProps> = ({ collapsed, setCollapsed }) => {
           <CheckCircle size={22} />
           <span className="text-xs mt-1">Submissions</span>
         </a>
+        <a href="/settings" className="flex flex-col items-center text-sm text-gray-700 hover:text-blue-600">
+          <Settings size={22} />
+          <span className="text-xs mt-1">Settings</span>
+        </a>
         <button
           onClick={handleLogout}
           className="flex flex-col items-center text-sm text-red-600 hover:text-red-800"
@@ -88,15 +92,15 @@ const Sidebar: React.FC<SidebarProps> = ({ collapsed, setCollapsed }) => {
       </div>
 
       <div className="p-4 space-y-2">
-  <a href="/settings" className="flex items-center text-gray-800 hover:underline">
-    <Settings size={22} />
-    {!collapsed && <span className="ml-3">Settings</span>}
-  </a>
-  <button onClick={handleLogout} className="flex items-center text-red-600 hover:underline">
-    <LogOut size={22} />
-    {!collapsed && <span className="ml-3">Logout</span>}
-  </button>
-</div>
+        <a href="/settings" className="flex items-center text-gray-800 hover:underline">
+          <Settings size={22} />
+          {!collapsed && <span className="ml-3">Settings</span>}
+        </a>
+        <button onClick={handleLogout} className="flex items-center text-red-600 hover:underline">
+          <LogOut size={22} />
+          {!collapsed && <span className="ml-3">Logout</span>}
+        </button>
+      </div>
     </aside>
   );
 };
