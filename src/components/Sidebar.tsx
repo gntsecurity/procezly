@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { createClient } from "@supabase/supabase-js";
 import { Home, LogOut, Menu } from "lucide-react";
+import { useEffect, useState } from "react";
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -16,11 +17,37 @@ interface SidebarProps {
 
 const Sidebar: React.FC<SidebarProps> = ({ collapsed, setCollapsed }) => {
   const router = useRouter();
+  const [isMobile, setIsMobile] = useState(false);
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
     router.push("/login");
   };
+
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+
+    handleResize();
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
+  if (isMobile) {
+    return (
+      <nav className="fixed bottom-0 left-0 right-0 z-50 bg-white border-t shadow-inner flex justify-around py-3 px-4">
+        <a href="/dashboard" className="flex flex-col items-center text-sm text-gray-700 hover:text-blue-600">
+          <Home size={22} />
+          <span className="text-xs mt-1">Dashboard</span>
+        </a>
+        <button onClick={handleLogout} className="flex flex-col items-center text-sm text-red-600 hover:text-red-800">
+          <LogOut size={22} />
+          <span className="text-xs mt-1">Logout</span>
+        </button>
+      </nav>
+    );
+  }
 
   return (
     <aside
@@ -48,7 +75,6 @@ const Sidebar: React.FC<SidebarProps> = ({ collapsed, setCollapsed }) => {
             <Home size={22} className="text-gray-800" />
             {!collapsed && <span>Dashboard</span>}
           </a>
-          {/* Add more links as needed */}
         </nav>
       </div>
 
