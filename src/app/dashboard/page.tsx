@@ -14,14 +14,9 @@ import {
 
 const Dashboard = () => {
   const [dashboardData, setDashboardData] = useState({
-    totalAudits: 0,
-    ongoingAudits: 0,
-    completedAudits: 0,
-    failedAudits: 0,
-    complianceScore: 0,
-    expiringCertifications: 0,
+    totalCards: 0,
     activeUsers: 0,
-    recentActivity: [],
+    complianceScore: 0,
   });
 
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -37,31 +32,36 @@ const Dashboard = () => {
     };
 
     const fetchData = async () => {
-      try {
-        const { data: audits } = await supabase.from("audits").select("*");
-        const { data: users } = await supabase.from("users").select("*");
+      const {
+        data: user,
+        error: userError
+      } = await supabase.auth.getUser();
 
-        const totalAudits = audits?.length || 0;
-        const ongoingAudits = audits?.filter((a) => a.status === "Ongoing").length || 0;
-        const completedAudits = audits?.filter((a) => a.status === "Completed").length || 0;
-        const failedAudits = audits?.filter((a) => a.status === "Failed").length || 0;
-        const complianceScore = 87;
-        const expiringCertifications = 3;
-        const activeUsers = users?.length || 0;
+      if (!user?.user?.id) return;
 
-        setDashboardData({
-          totalAudits,
-          ongoingAudits,
-          completedAudits,
-          failedAudits,
-          complianceScore,
-          expiringCertifications,
-          activeUsers,
-          recentActivity: [],
-        });
-      } catch (error) {
-        console.error("Error fetching Supabase data:", error);
-      }
+      const { data: roleData } = await supabase
+        .from("roles")
+        .select("organization_id")
+        .eq("user_id", user.user.id)
+        .single();
+
+      if (!roleData) return;
+
+      const { data: cards } = await supabase
+        .from("kamishibai_cards")
+        .select("*")
+        .eq("organization_id", roleData.organization_id);
+
+      const { data: users } = await supabase
+        .from("roles")
+        .select("user_id")
+        .eq("organization_id", roleData.organization_id);
+
+      setDashboardData({
+        totalCards: cards?.length || 0,
+        activeUsers: users?.length || 0,
+        complianceScore: 87
+      });
     };
 
     checkAuth();
@@ -76,17 +76,13 @@ const Dashboard = () => {
     <div className="px-4 pt-4 sm:px-6 sm:pt-6 w-full max-w-7xl mx-auto">
       <h1 className="text-xl sm:text-3xl font-semibold text-gray-900">Dashboard</h1>
       <p className="text-gray-600 text-sm sm:text-base mt-1">
-        Live compliance and audit performance tracking.
+        Real-time Kamishibai visibility and org performance.
       </p>
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 sm:gap-6 mt-6">
-        <StatCard icon={<ClipboardList size={24} />} title="Total Audits" value={dashboardData.totalAudits} />
-        <StatCard icon={<Clock size={24} />} title="Ongoing Audits" value={dashboardData.ongoingAudits} />
-        <StatCard icon={<CheckCircle size={24} className="text-green-600" />} title="Completed Audits" value={dashboardData.completedAudits} />
-        <StatCard icon={<AlertTriangle size={24} className="text-red-600" />} title="Failed Audits" value={dashboardData.failedAudits} />
-        <StatCard icon={<ShieldCheck size={24} className="text-blue-600" />} title="Compliance Score" value={`${dashboardData.complianceScore}%`} />
-        <StatCard icon={<FileText size={24} className="text-yellow-600" />} title="Expiring Certifications" value={dashboardData.expiringCertifications} />
+        <StatCard icon={<ClipboardList size={24} />} title="Kamishibai Cards" value={dashboardData.totalCards} />
         <StatCard icon={<Users size={24} className="text-indigo-600" />} title="Active Users" value={dashboardData.activeUsers} />
+        <StatCard icon={<ShieldCheck size={24} className="text-blue-600" />} title="Compliance Score" value={`${dashboardData.complianceScore}%`} />
       </div>
     </div>
   );

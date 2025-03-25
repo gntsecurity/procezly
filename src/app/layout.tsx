@@ -2,16 +2,11 @@
 
 import { useEffect, useState } from "react";
 import { useRouter, usePathname } from "next/navigation";
-import { createClient } from "@supabase/supabase-js";
+import { supabase } from "../utils/supabaseClient";
 import Sidebar from "../components/Sidebar";
 import Footer from "../components/Footer";
 import CookieBanner from "../components/CookieBanner";
 import "./globals.css";
-
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-);
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
