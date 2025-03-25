@@ -73,7 +73,7 @@ const Dashboard = () => {
   }
 
   return (
-    <div className="p-4 sm:p-6">
+    <div className="p-4 sm:p-6 w-full max-w-7xl mx-auto">
       <h1 className="text-2xl sm:text-3xl font-semibold text-gray-900">Dashboard</h1>
       <p className="text-gray-600 text-sm sm:text-base mt-1">
         Live compliance and audit performance tracking.

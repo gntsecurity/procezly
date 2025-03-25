@@ -65,7 +65,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <head>
         <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
         <link rel="manifest" href="/manifest.json" />
-        <meta name="theme-color" content="#0a2540" />
+        <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)" />
+	<meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)" />
+	<meta name="apple-mobile-web-app-status-bar-style" content="default" />
       </head>
       <body className="bg-white text-gray-900">
         <div className="flex min-h-screen w-full relative">
