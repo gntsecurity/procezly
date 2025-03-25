@@ -24,6 +24,7 @@ const KamishibaiPage = () => {
   const [orgId, setOrgId] = useState<string | null>(null);
   const [userId, setUserId] = useState<string | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
+  const [editId, setEditId] = useState<string | null>(null);
   const [formData, setFormData] = useState<Omit<KamishibaiCard, "id">>({
     uid: "",
     area: "",
@@ -66,7 +67,6 @@ const KamishibaiPage = () => {
     fetchData();
   }, []);
 
-  // Just to satisfy Cloudflare’s ESLint
   useEffect(() => {
     if (orgId) console.debug("orgId:", orgId);
   }, [orgId]);
@@ -77,22 +77,14 @@ const KamishibaiPage = () => {
     setCards(cards.filter((card) => card.id !== id));
   };
 
-  const handleSave = async () => {
-    if (!orgId || !userId) return;
+  const handleEdit = (card: KamishibaiCard) => {
+    setEditId(card.id);
+    setFormData({ ...card });
+    setModalOpen(true);
+  };
 
-    const payload = {
-      ...formData,
-      organization_id: orgId,
-      modified_by: userId,
-      modified: new Date().toISOString(),
-    };
-
-    const { error } = await supabase.from("kamishibai_cards").insert(payload);
-    if (error) {
-      console.error("Insert error:", error);
-      return;
-    }
-
+  const resetForm = () => {
+    setEditId(null);
     setModalOpen(false);
     setFormData({
       uid: "",
@@ -106,6 +98,31 @@ const KamishibaiPage = () => {
       modified_by: "",
       modified: "",
     });
+  };
+
+  const handleSave = async () => {
+    if (!orgId || !userId) return;
+
+    const payload = {
+      ...formData,
+      organization_id: orgId,
+      modified_by: userId,
+      modified: new Date().toISOString(),
+    };
+
+    let error;
+    if (editId) {
+      ({ error } = await supabase.from("kamishibai_cards").update(payload).eq("id", editId));
+    } else {
+      ({ error } = await supabase.from("kamishibai_cards").insert(payload));
+    }
+
+    if (error) {
+      console.error("Save error:", error);
+      return;
+    }
+
+    resetForm();
 
     const { data: refreshed } = await supabase
       .from("kamishibai_cards")
@@ -122,7 +139,10 @@ const KamishibaiPage = () => {
         <h1 className="text-2xl font-semibold text-gray-900">Kamishibai Cards</h1>
         {isAdmin && (
           <button
-            onClick={() => setModalOpen(true)}
+            onClick={() => {
+              setEditId(null);
+              setModalOpen(true);
+            }}
             className="flex items-center px-3 py-1.5 text-sm bg-blue-600 text-white rounded hover:bg-blue-700 transition"
           >
             <Plus size={16} className="mr-1" />
@@ -151,7 +171,10 @@ const KamishibaiPage = () => {
                 <td className="px-4 py-2 text-gray-900">{card.responsible}</td>
                 {isAdmin && (
                   <td className="px-4 py-2 text-right space-x-2">
-                    <button className="text-blue-600 hover:text-blue-800">
+                    <button
+                      className="text-blue-600 hover:text-blue-800"
+                      onClick={() => handleEdit(card)}
+                    >
                       <Pencil size={18} />
                     </button>
                     <button
@@ -179,12 +202,14 @@ const KamishibaiPage = () => {
         <div className="fixed inset-0 z-50 bg-black/40 flex items-center justify-center px-4">
           <div className="bg-white rounded-lg w-full max-w-2xl p-6 relative">
             <button
-              onClick={() => setModalOpen(false)}
+              onClick={resetForm}
               className="absolute top-3 right-3 text-gray-400 hover:text-gray-600"
             >
               <X size={20} />
             </button>
-            <h2 className="text-lg font-semibold mb-4">Add New Card</h2>
+            <h2 className="text-lg font-semibold mb-4">
+              {editId ? "Edit Card" : "Add New Card"}
+            </h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <input
                 className="border border-gray-300 rounded px-3 py-2"
@@ -243,7 +268,7 @@ const KamishibaiPage = () => {
             </div>
             <div className="mt-6 flex justify-end space-x-2">
               <button
-                onClick={() => setModalOpen(false)}
+                onClick={resetForm}
                 className="px-4 py-2 border rounded text-gray-700 hover:bg-gray-100"
               >
                 Cancel
