@@ -15,7 +15,8 @@ interface Submission {
 
 interface Card {
   id: string;
-  name: string;
+  area: string;
+  uid: string;
 }
 
 const SubmissionsPage = () => {
@@ -48,20 +49,20 @@ const SubmissionsPage = () => {
 
       const { data: cardData } = await supabase
         .from("kamishibai_cards")
-        .select("id, name")
+        .select("id, area, uid")
         .eq("organization_id", roleData.organization_id);
 
       setCards(cardData || []);
 
       const { data: submissionData } = await supabase
         .from("submissions")
-        .select("*, kamishibai_cards(name)")
+        .select("*, kamishibai_cards(area, uid)")
         .eq("organization_id", roleData.organization_id)
         .order("submitted_at", { ascending: false });
 
       const withCardNames = (submissionData || []).map((s) => ({
         ...s,
-        card_name: s.kamishibai_cards?.name || "Unknown",
+        card_name: s.kamishibai_cards?.area || s.kamishibai_cards?.uid || "Unknown",
       }));
 
       setSubmissions(
@@ -91,13 +92,13 @@ const SubmissionsPage = () => {
 
     const { data: updated } = await supabase
       .from("submissions")
-      .select("*, kamishibai_cards(name)")
+      .select("*, kamishibai_cards(area, uid)")
       .eq("organization_id", orgId)
       .order("submitted_at", { ascending: false });
 
     const withCardNames = (updated || []).map((s) => ({
       ...s,
-      card_name: s.kamishibai_cards?.name || "Unknown",
+      card_name: s.kamishibai_cards?.area || s.kamishibai_cards?.uid || "Unknown",
     }));
 
     setSubmissions(
@@ -131,7 +132,7 @@ const SubmissionsPage = () => {
             <option value="">Select Card</option>
             {cards.map((card) => (
               <option key={card.id} value={card.id}>
-                {card.name}
+                {card.area || card.uid}
               </option>
             ))}
           </select>
