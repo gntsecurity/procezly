@@ -2,7 +2,14 @@
 
 import { useRouter } from "next/navigation";
 import { supabase } from "../utils/supabaseClient";
-import { Home, LogOut, Menu, ClipboardList, CheckCircle } from "lucide-react";
+import {
+  Home,
+  LogOut,
+  Menu,
+  ClipboardList,
+  CheckCircle,
+  CalendarClock
+} from "lucide-react";
 import { useEffect, useState } from "react";
 
 interface SidebarProps {
@@ -13,6 +20,7 @@ interface SidebarProps {
 const Sidebar: React.FC<SidebarProps> = ({ collapsed, setCollapsed }) => {
   const router = useRouter();
   const [isMobile, setIsMobile] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
@@ -24,6 +32,25 @@ const Sidebar: React.FC<SidebarProps> = ({ collapsed, setCollapsed }) => {
     handleResize();
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
+  useEffect(() => {
+    const checkRole = async () => {
+      const { data: user } = await supabase.auth.getUser();
+      if (!user?.user?.id) return;
+
+      const { data: roleData } = await supabase
+        .from("roles")
+        .select("role")
+        .eq("user_id", user.user.id)
+        .single();
+
+      if (roleData?.role === "admin") {
+        setIsAdmin(true);
+      }
+    };
+
+    checkRole();
   }, []);
 
   if (isMobile) {
@@ -84,6 +111,12 @@ const Sidebar: React.FC<SidebarProps> = ({ collapsed, setCollapsed }) => {
             <CheckCircle size={22} className="text-gray-800" />
             {!collapsed && <span>Submissions</span>}
           </a>
+          {isAdmin && (
+            <a href="/settings/audit-schedule" className="flex items-center space-x-3 p-2 rounded-md hover:bg-gray-100">
+              <CalendarClock size={22} className="text-gray-800" />
+              {!collapsed && <span>Audit Schedule</span>}
+            </a>
+          )}
         </nav>
       </div>
 
