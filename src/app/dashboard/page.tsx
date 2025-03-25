@@ -37,6 +37,7 @@ const Dashboard = () => {
         error: userError
       } = await supabase.auth.getUser();
 
+      if (userError) console.warn("User error:", userError);
       if (!user?.user?.id) return;
 
       const { data: roleData } = await supabase
@@ -83,6 +84,13 @@ const Dashboard = () => {
         <StatCard icon={<ClipboardList size={24} />} title="Kamishibai Cards" value={dashboardData.totalCards} />
         <StatCard icon={<Users size={24} className="text-indigo-600" />} title="Active Users" value={dashboardData.activeUsers} />
         <StatCard icon={<ShieldCheck size={24} className="text-blue-600" />} title="Compliance Score" value={`${dashboardData.complianceScore}%`} />
+      </div>
+
+      <div className="hidden">
+        <AlertTriangle />
+        <CheckCircle />
+        <Clock />
+        <FileText />
       </div>
     </div>
   );

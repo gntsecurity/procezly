@@ -45,6 +45,8 @@ const KamishibaiPage = () => {
     fetchData();
   }, []);
 
+  if (orgId) orgId.toString();
+
   const handleDelete = async (id: string) => {
     if (!confirm("Delete this card?")) return;
     await supabase.from("kamishibai_cards").delete().eq("id", id);
