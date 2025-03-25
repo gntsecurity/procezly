@@ -25,7 +25,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   const isDashboardPage = pathname.startsWith("/dashboard");
 
   useEffect(() => {
-    // Register service worker
     if ("serviceWorker" in navigator) {
       navigator.serviceWorker.register("/sw.js").then(() => {
         console.log("Service Worker Registered");
@@ -49,7 +48,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     const handleResize = () => {
       const isSmall = window.matchMedia("(max-width: 768px)").matches;
       setIsMobile(isSmall);
-      setCollapsed(isSmall); // auto-collapse sidebar on mobile
+      setCollapsed(isSmall);
     };
 
     handleResize();
@@ -80,25 +79,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             {!isDashboardPage && <Footer />}
             <CookieBanner />
           </div>
-
-          {/* Floating toggle button for sidebar on mobile */}
-          {isDashboardPage && isMobile && (
-            <button
-              className="fixed bottom-6 left-6 z-50 p-3 rounded-full bg-blue-600 text-white shadow-lg hover:bg-blue-700 transition"
-              onClick={() => setCollapsed(!collapsed)}
-              aria-label="Toggle Menu"
-            >
-              {collapsed ? (
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
-                </svg>
-              ) : (
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              )}
-            </button>
-          )}
         </div>
       </body>
     </html>

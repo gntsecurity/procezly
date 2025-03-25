@@ -25,10 +25,7 @@ const Sidebar: React.FC<SidebarProps> = ({ collapsed, setCollapsed }) => {
   };
 
   useEffect(() => {
-    const handleResize = () => {
-      setIsMobile(window.innerWidth < 768);
-    };
-
+    const handleResize = () => setIsMobile(window.innerWidth < 768);
     handleResize();
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
@@ -41,7 +38,10 @@ const Sidebar: React.FC<SidebarProps> = ({ collapsed, setCollapsed }) => {
           <Home size={22} />
           <span className="text-xs mt-1">Dashboard</span>
         </a>
-        <button onClick={handleLogout} className="flex flex-col items-center text-sm text-red-600 hover:text-red-800">
+        <button
+          onClick={handleLogout}
+          className="flex flex-col items-center text-sm text-red-600 hover:text-red-800"
+        >
           <LogOut size={22} />
           <span className="text-xs mt-1">Logout</span>
         </button>
@@ -56,7 +56,6 @@ const Sidebar: React.FC<SidebarProps> = ({ collapsed, setCollapsed }) => {
       }`}
     >
       <div>
-        {/* Sidebar Header */}
         <div className="p-4 flex items-center justify-between">
           <span className={`text-2xl font-bold text-gray-800 ${collapsed ? "hidden" : "block"}`}>
             Procezly
@@ -69,7 +68,6 @@ const Sidebar: React.FC<SidebarProps> = ({ collapsed, setCollapsed }) => {
           </button>
         </div>
 
-        {/* Navigation Links */}
         <nav className="flex flex-col space-y-2 mt-4 px-2">
           <a href="/dashboard" className="flex items-center space-x-3 p-2 rounded-md hover:bg-gray-100">
             <Home size={22} className="text-gray-800" />
@@ -78,7 +76,6 @@ const Sidebar: React.FC<SidebarProps> = ({ collapsed, setCollapsed }) => {
         </nav>
       </div>
 
-      {/* Logout Button */}
       <div className="p-4">
         <button onClick={handleLogout} className="flex items-center text-red-600 hover:underline">
           <LogOut size={22} />
