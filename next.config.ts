@@ -1,14 +1,21 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  output: "standalone", // ✅ required for dynamic routes & APIs
   experimental: {
-    serverActions: {}, // this is still good
+    serverActions: {}, // ✅ you're good here
   },
-  webpack: (config) => {
-    config.module.rules.push({
-      test: /functions\/.*\.ts$/,
-      use: "null-loader",
-    });
+  modularizeImports: {
+    // ✅ optional optimization: reduces Lucide bundle size
+    "lucide-react": {
+      transform: "lucide-react/icons/{{member}}",
+    },
+  },
+  webpack(config) {
+    config.optimization.splitChunks = {
+      chunks: "all",
+      maxSize: 24000000, // ✅ stay under Cloudflare's 25 MiB limit
+    };
     return config;
   },
 };
