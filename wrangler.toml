@@ -1,5 +1,0 @@
-name = "procezly"
-compatibility_date = "2025-03-25"
-
-[functions]
-directory = "./functions"

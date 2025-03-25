@@ -1,21 +1,8 @@
-import type { NextConfig } from "next";
-
-const nextConfig: NextConfig = {
-  output: "standalone", // required for dynamic routes
+// next.config.ts
+const nextConfig = {
+  output: "export",
   experimental: {
-    serverActions: {},
-  },
-  modularizeImports: {
-    "lucide-react": {
-      transform: "lucide-react/icons/{{member}}",
-    },
-  },
-  webpack(config) {
-    config.optimization.splitChunks = {
-      chunks: "all",
-      maxSize: 24000000, // ⚠️ Cloudflare Pages max file size = 25 MiB
-    };
-    return config;
+    serverActions: {}, // Fix: Should be an object, not a boolean
   },
 };
 
