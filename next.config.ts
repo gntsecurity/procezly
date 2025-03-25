@@ -1,12 +1,11 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  output: "standalone", // Allows dynamic routes + API functions
+  output: "standalone", // required for dynamic routes
   experimental: {
-    serverActions: {}, // You already noted this is good
+    serverActions: {},
   },
   modularizeImports: {
-    // Tree-shake Lucide icons
     "lucide-react": {
       transform: "lucide-react/icons/{{member}}",
     },
@@ -14,7 +13,7 @@ const nextConfig: NextConfig = {
   webpack(config) {
     config.optimization.splitChunks = {
       chunks: "all",
-      maxSize: 24000000, // Stay under Cloudflare 25 MiB file limit
+      maxSize: 24000000, // ⚠️ Cloudflare Pages max file size = 25 MiB
     };
     return config;
   },
