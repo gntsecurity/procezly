@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { supabase } from "../../../utils/supabaseClient";
+import { supabase } from "../../utils/supabaseClient";
 
 const daysOfWeek = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"];
 const frequencies = ["daily", "weekly", "monthly"];
