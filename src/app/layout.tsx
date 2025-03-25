@@ -15,7 +15,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   const [collapsed, setCollapsed] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
 
-  const isDashboardPage = pathname.startsWith("/dashboard");
+  const dashboardRoutes = ["/dashboard", "/kamishibai", "/submissions"];
+  const isDashboardPage = dashboardRoutes.some(route => pathname.startsWith(route));
 
   useEffect(() => {
     if ("serviceWorker" in navigator) {
