@@ -33,7 +33,11 @@ const Dashboard = () => {
     };
 
     const fetchData = async () => {
-      const { data: user, error: userError } = await supabase.auth.getUser();
+      const {
+        data: user,
+        error: userError,
+      } = await supabase.auth.getUser();
+
       if (userError) console.warn("User error:", userError);
       if (!user?.user?.id) return;
 
