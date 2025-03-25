@@ -194,6 +194,10 @@ const SubmissionsPage = () => {
           </tbody>
         </table>
       </div>
+
+      <div className="hidden">
+        <CheckCircle />
+      </div>
     </div>
   );
 };
