@@ -1,8 +1,17 @@
+// src/app/dashboard/page.tsx
 "use client";
 
 import { useEffect, useState } from "react";
 import { supabase } from "../../utils/supabaseClient";
-import { ClipboardList, ShieldCheck, Users, AlertTriangle, CheckCircle, Clock, FileText } from "lucide-react";
+import {
+  ClipboardList,
+  ShieldCheck,
+  Users,
+  AlertTriangle,
+  CheckCircle,
+  Clock,
+  FileText,
+} from "lucide-react";
 
 const Dashboard = () => {
   const [dashboardData, setDashboardData] = useState({
@@ -22,7 +31,7 @@ const Dashboard = () => {
     const checkAuth = async () => {
       const { data: session } = await supabase.auth.getSession();
       if (!session?.session) {
-        window.location.href = "/login"; // Redirect to login if unauthenticated
+        window.location.href = "/login";
         return;
       }
       setIsAuthenticated(true);
@@ -65,32 +74,41 @@ const Dashboard = () => {
   }
 
   return (
-    <div className="p-6">
-      <h1 className="text-3xl font-semibold text-gray-900">Dashboard</h1>
-      <p className="text-gray-600 mt-2">Live compliance and audit performance tracking.</p>
+    <div className="p-4 sm:p-6">
+      <h1 className="text-2xl sm:text-3xl font-semibold text-gray-900">Dashboard</h1>
+      <p className="text-gray-600 text-sm sm:text-base mt-1">
+        Live compliance and audit performance tracking.
+      </p>
 
       {/* Key Metrics Section */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mt-6">
-        <StatCard icon={<ClipboardList size={28} />} title="Total Audits" value={dashboardData.totalAudits} />
-        <StatCard icon={<Clock size={28} />} title="Ongoing Audits" value={dashboardData.ongoingAudits} />
-        <StatCard icon={<CheckCircle size={28} className="text-green-600" />} title="Completed Audits" value={dashboardData.completedAudits} />
-        <StatCard icon={<AlertTriangle size={28} className="text-red-600" />} title="Failed Audits" value={dashboardData.failedAudits} />
-        <StatCard icon={<ShieldCheck size={28} className="text-blue-600" />} title="Compliance Score" value={`${dashboardData.complianceScore}%`} />
-        <StatCard icon={<FileText size={28} className="text-yellow-600" />} title="Expiring Certifications" value={dashboardData.expiringCertifications} />
-        <StatCard icon={<Users size={28} className="text-indigo-600" />} title="Active Users" value={dashboardData.activeUsers} />
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6 mt-6">
+        <StatCard icon={<ClipboardList size={26} />} title="Total Audits" value={dashboardData.totalAudits} />
+        <StatCard icon={<Clock size={26} />} title="Ongoing Audits" value={dashboardData.ongoingAudits} />
+        <StatCard icon={<CheckCircle size={26} className="text-green-600" />} title="Completed Audits" value={dashboardData.completedAudits} />
+        <StatCard icon={<AlertTriangle size={26} className="text-red-600" />} title="Failed Audits" value={dashboardData.failedAudits} />
+        <StatCard icon={<ShieldCheck size={26} className="text-blue-600" />} title="Compliance Score" value={`${dashboardData.complianceScore}%`} />
+        <StatCard icon={<FileText size={26} className="text-yellow-600" />} title="Expiring Certifications" value={dashboardData.expiringCertifications} />
+        <StatCard icon={<Users size={26} className="text-indigo-600" />} title="Active Users" value={dashboardData.activeUsers} />
       </div>
     </div>
   );
 };
 
-// Component for Statistic Cards
-const StatCard = ({ icon, title, value }: { icon: React.ReactNode; title: string; value: string | number }) => {
+const StatCard = ({
+  icon,
+  title,
+  value,
+}: {
+  icon: React.ReactNode;
+  title: string;
+  value: string | number;
+}) => {
   return (
-    <div className="bg-white p-6 rounded-lg shadow-md flex items-center space-x-4 border border-gray-200 hover:shadow-lg transition">
+    <div className="bg-white p-4 sm:p-6 rounded-lg shadow-sm flex items-center space-x-4 border border-gray-200 hover:shadow-md transition">
       <div className="p-3 bg-gray-100 rounded-full">{icon}</div>
       <div>
         <p className="text-gray-600 text-sm">{title}</p>
-        <p className="text-xl font-semibold text-gray-900">{value}</p>
+        <p className="text-lg sm:text-xl font-semibold text-gray-900">{value}</p>
       </div>
     </div>
   );

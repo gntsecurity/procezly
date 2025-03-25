@@ -3,7 +3,6 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Navbar from "../../components/Navbar";
-import Footer from "../../components/Footer";
 
 export default function DemoPage() {
   const [formData, setFormData] = useState({
@@ -169,8 +168,6 @@ export default function DemoPage() {
           </p>
         </motion.div>
       </main>
-
-      <Footer />
     </div>
   );
 }
