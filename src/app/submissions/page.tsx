@@ -132,7 +132,7 @@ const SubmissionsPage = () => {
             <option value="">Select Card</option>
             {cards.map((card) => (
               <option key={card.id} value={card.id}>
-                {card.area || card.uid}
+                {card.uid}
               </option>
             ))}
           </select>
