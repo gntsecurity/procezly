@@ -87,12 +87,16 @@ const Sidebar: React.FC<SidebarProps> = ({ collapsed, setCollapsed }) => {
         </nav>
       </div>
 
-      <div className="p-4">
-        <button onClick={handleLogout} className="flex items-center text-red-600 hover:underline">
-          <LogOut size={22} />
-          {!collapsed && <span className="ml-3">Logout</span>}
-        </button>
-      </div>
+      <div className="p-4 space-y-2">
+  <a href="/settings" className="flex items-center text-gray-800 hover:underline">
+    <Settings size={22} />
+    {!collapsed && <span className="ml-3">Settings</span>}
+  </a>
+  <button onClick={handleLogout} className="flex items-center text-red-600 hover:underline">
+    <LogOut size={22} />
+    {!collapsed && <span className="ml-3">Logout</span>}
+  </button>
+</div>
     </aside>
   );
 };
