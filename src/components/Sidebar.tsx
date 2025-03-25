@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { supabase } from "../utils/supabaseClient";
-import { Home, LogOut, Menu, ClipboardList, CheckCircle } from "lucide-react";
+import { Home, LogOut, Menu, ClipboardList, CheckCircle, Settings } from "lucide-react";
 import { useEffect, useState } from "react";
 
 interface SidebarProps {
