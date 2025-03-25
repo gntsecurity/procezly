@@ -19,6 +19,7 @@ const Dashboard = () => {
     complianceScore: 0,
   });
 
+  const [userName, setUserName] = useState("");
   const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   useEffect(() => {
@@ -32,13 +33,11 @@ const Dashboard = () => {
     };
 
     const fetchData = async () => {
-      const {
-        data: user,
-        error: userError
-      } = await supabase.auth.getUser();
-
+      const { data: user, error: userError } = await supabase.auth.getUser();
       if (userError) console.warn("User error:", userError);
       if (!user?.user?.id) return;
+
+      setUserName(user.user.email?.split("@")[0] || "there");
 
       const { data: roleData } = await supabase
         .from("roles")
@@ -61,7 +60,7 @@ const Dashboard = () => {
       setDashboardData({
         totalCards: cards?.length || 0,
         activeUsers: users?.length || 0,
-        complianceScore: 87
+        complianceScore: 87,
       });
     };
 
@@ -75,9 +74,11 @@ const Dashboard = () => {
 
   return (
     <div className="px-4 pt-4 sm:px-6 sm:pt-6 w-full max-w-7xl mx-auto">
-      <h1 className="text-xl sm:text-3xl font-semibold text-gray-900">Dashboard</h1>
+      <h1 className="text-xl sm:text-3xl font-semibold text-gray-900">
+        Hey {userName}, welcome back 👋
+      </h1>
       <p className="text-gray-600 text-sm sm:text-base mt-1">
-        Real-time Kamishibai visibility and org performance.
+        Your team is making progress! Here's the latest snapshot.
       </p>
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 sm:gap-6 mt-6">
