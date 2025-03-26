@@ -1,6 +1,3 @@
-import { useState } from "react";
-import Image from "next/image";
-
 export default function Footer() {
   const [email, setEmail] = useState("");
   const [subscribed, setSubscribed] = useState(false);
@@ -31,11 +28,9 @@ export default function Footer() {
     <footer className="bg-white py-12">
       <div className="max-w-[1400px] mx-auto px-6 flex flex-col md:flex-row justify-between items-start gap-10">
         <div className="w-full md:w-1/3">
-          <Image
+          <img
             src="/logo.png"
             alt="Procezly Logo"
-            width={100}
-            height={32}
             className="h-8 w-auto"
           />
           <p className="text-gray-600 mt-2">
