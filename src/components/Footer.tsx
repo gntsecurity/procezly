@@ -95,9 +95,6 @@ export default function Footer() {
           <a href="/terms" className="text-gray-500 hover:underline">
             Terms of Service
           </a>
-          <a href="/community" className="text-gray-500 hover:underline">
-            Community
-          </a>
         </div>
       </div>
     </footer>
