@@ -64,9 +64,11 @@ const Sidebar: React.FC<SidebarProps> = ({ collapsed, setCollapsed }) => {
     >
       <div>
         <div className="p-4 flex items-center justify-between">
-          <span className={`text-2xl font-bold text-gray-800 ${collapsed ? "hidden" : "block"}`}>
-            Procezly
-          </span>
+          <img
+            src="/logo.png"
+            alt="Procezly Logo"
+            className={`h-8 w-auto ${collapsed ? "hidden" : "block"}`}
+          />
           <button
             onClick={() => setCollapsed(!collapsed)}
             className="p-2 bg-gray-100 rounded-md focus:outline-none"
