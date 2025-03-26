@@ -31,8 +31,10 @@ export default function Navbar() {
           scrolling ? "bg-white/90 backdrop-blur-md shadow-md" : "bg-transparent"
         }`}
       >
-        <motion.div className="text-2xl font-extrabold tracking-tight text-gray-900">
-          <Link href="/">Procezly</Link>
+        <motion.div>
+          <Link href="/">
+            <img src="/logo.png" alt="Procezly Logo" className="h-8 w-auto" />
+          </Link>
         </motion.div>
 
         <div className="flex space-x-4">

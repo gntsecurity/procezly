@@ -1,3 +1,4 @@
+// Footer.tsx
 import { useState } from "react";
 
 export default function Footer() {
@@ -29,9 +30,8 @@ export default function Footer() {
   return (
     <footer className="bg-white py-12">
       <div className="max-w-[1400px] mx-auto px-6 flex flex-col md:flex-row justify-between items-start gap-10">
-        {/* Left Section */}
         <div className="w-full md:w-1/3">
-          <h3 className="text-xl font-bold text-gray-900">Procezly</h3>
+          <img src="/logo.png" alt="Procezly Logo" className="h-8 w-auto" />
           <p className="text-gray-600 mt-2">
             Join our newsletter to stay up to date on features and releases.
           </p>
@@ -45,7 +45,6 @@ export default function Footer() {
           </div>
         </div>
 
-        {/* Right Section: Newsletter Signup */}
         <div className="w-full md:w-1/3">
           <form onSubmit={handleSubscribe} className="flex space-x-2">
             <input
@@ -79,10 +78,9 @@ export default function Footer() {
         </div>
       </div>
 
-      {/* Bottom Section */}
       <div className="w-full max-w-[1400px] mx-auto mt-10 px-6 flex flex-col md:flex-row justify-between items-center border-t pt-6">
         <p className="text-gray-500 text-sm">
-          &copy; 2025 Procezly. All rights reserved. a product of GNT Security.
+          &copy; 2025 Procezly. All rights reserved. A product of GNT Security.
         </p>
         <div className="flex space-x-4 text-sm">
           <a href="/privacy-policy" className="text-gray-500 hover:underline">
