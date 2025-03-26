@@ -1,3 +1,7 @@
+"use client";
+
+import Navbar from "../components/Navbar";
+
 export default function PrivacyPolicyPage() {
   return (
     <main className="max-w-4xl mx-auto px-6 py-16 text-gray-800">
