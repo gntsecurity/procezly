@@ -19,7 +19,7 @@ export default function Home() {
             className="space-y-6"
           >
             <h1 className="text-6xl md:text-7xl font-extrabold leading-tight">
-              The Future of <span className="text-blue-600">Kamishibai Auditing</span>
+              The Future of <span className="text-blue-600">Manufacturing Automation</span>
             </h1>
             <p className="text-lg text-gray-700 max-w-xl">
               Compliance automation with real-time monitoring, streamlined workflows, and enterprise-grade security—built for precision manufacturing.
