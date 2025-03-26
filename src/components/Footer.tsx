@@ -1,5 +1,5 @@
-// Footer.tsx
 import { useState } from "react";
+import Image from "next/image";
 
 export default function Footer() {
   const [email, setEmail] = useState("");
@@ -31,7 +31,13 @@ export default function Footer() {
     <footer className="bg-white py-12">
       <div className="max-w-[1400px] mx-auto px-6 flex flex-col md:flex-row justify-between items-start gap-10">
         <div className="w-full md:w-1/3">
-          <img src="/logo.png" alt="Procezly Logo" className="h-8 w-auto" />
+          <Image
+            src="/logo.png"
+            alt="Procezly Logo"
+            width={100}
+            height={32}
+            className="h-8 w-auto"
+          />
           <p className="text-gray-600 mt-2">
             Join our newsletter to stay up to date on features and releases.
           </p>
@@ -88,6 +94,9 @@ export default function Footer() {
           </a>
           <a href="/terms" className="text-gray-500 hover:underline">
             Terms of Service
+          </a>
+          <a href="/community" className="text-gray-500 hover:underline">
+            Community
           </a>
         </div>
       </div>
