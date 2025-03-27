@@ -1,22 +1,16 @@
 // next.config.ts
-import withPWA from 'next-pwa'
-import path from 'path'
+const withPWA = require("next-pwa")({
+  dest: "public",
+  disable: process.env.NODE_ENV === "development",
+  register: true,
+  skipWaiting: true,
+});
 
-const baseConfig = {
-  output: 'export',
+const nextConfig = {
+  reactStrictMode: true,
   experimental: {
-    serverActions: {}, // already correct
+    serverActions: {},
   },
-}
+};
 
-const nextConfig = withPWA({
-  ...baseConfig,
-  pwa: {
-    dest: 'public',
-    register: true,
-    skipWaiting: true,
-    swSrc: path.join(__dirname, 'public', 'service-worker.js'),
-  },
-})
-
-export default nextConfig
+module.exports = withPWA(nextConfig);
