@@ -1,13 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, FormEvent } from "react";
 import { useRouter } from "next/navigation";
-import { createClient } from "@supabase/supabase-js";
-
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-);
+import { supabase } from "../../utils/supabaseClient";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -17,19 +12,17 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
 
   useEffect(() => {
-    const checkAuth = async () => {
+    const checkSession = async () => {
       const { data: { session } } = await supabase.auth.getSession();
-      if (session) {
-        router.push("/dashboard");
-      }
+      if (session) router.push("/dashboard");
     };
-    checkAuth();
+    checkSession();
   }, [router]);
 
-  const handleLogin = async (e: React.FormEvent) => {
+  const handleLogin = async (e: FormEvent) => {
     e.preventDefault();
-    setError(null);
     setLoading(true);
+    setError(null);
 
     const { error } = await supabase.auth.signInWithPassword({
       email,
@@ -46,40 +39,50 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-gray-100">
-      <div className="bg-white p-8 rounded-lg shadow-lg w-full max-w-md">
-        <h2 className="text-2xl font-semibold text-center text-gray-900">Sign In</h2>
-        <p className="text-gray-600 text-center mt-2">Sign in to access your Procezly dashboard</p>
+    <div className="flex items-center justify-center min-h-screen bg-gray-100 px-4">
+      <div className="bg-white w-full max-w-md p-8 rounded-2xl shadow-xl border border-gray-200">
+        <h1 className="text-3xl font-bold text-center text-gray-900">Sign In</h1>
+        <p className="text-sm text-gray-600 text-center mt-2">Access your Procezly dashboard</p>
 
-        {error && <p className="text-red-600 text-sm text-center mt-2">{error}</p>}
+        {error && (
+          <div className="mt-4 text-center text-sm text-red-600 font-medium">
+            {error}
+          </div>
+        )}
 
-        <form onSubmit={handleLogin} className="mt-6 space-y-4">
+        <form onSubmit={handleLogin} className="mt-6 space-y-5">
           <div>
-            <label className="block text-gray-700">Email</label>
+            <label htmlFor="email" className="block text-sm font-medium text-gray-700">
+              Email Address
+            </label>
             <input
+              id="email"
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full px-4 py-2 mt-1 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="mt-1 w-full px-4 py-2 border rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
               required
             />
           </div>
 
           <div>
-            <label className="block text-gray-700">Password</label>
+            <label htmlFor="password" className="block text-sm font-medium text-gray-700">
+              Password
+            </label>
             <input
+              id="password"
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full px-4 py-2 mt-1 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="mt-1 w-full px-4 py-2 border rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
               required
             />
           </div>
 
           <button
             type="submit"
-            className="w-full py-3 mt-4 text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition"
             disabled={loading}
+            className="w-full py-3 text-white font-semibold bg-blue-600 rounded-lg hover:bg-blue-700 transition"
           >
             {loading ? "Signing in..." : "Sign In"}
           </button>

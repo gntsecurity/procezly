@@ -4,7 +4,7 @@
 const nextConfig = {
   output: 'export',
   experimental: {
-    serverActions: true,
+    serverActions: {},
   },
   images: {
     unoptimized: true, // Required for static exports if using next/image

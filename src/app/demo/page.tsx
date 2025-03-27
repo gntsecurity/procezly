@@ -55,7 +55,7 @@ export default function DemoPage() {
       <Navbar />
 
       <main className="flex-grow flex flex-col items-center justify-center px-6 md:px-12 py-12">
-        {/* Hero Section */}
+        {/* Hero */}
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -70,13 +70,14 @@ export default function DemoPage() {
           </p>
         </motion.div>
 
-        {/* Submission Success */}
+        {/* Success Message */}
         <AnimatePresence>
           {submitted && (
             <motion.div
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: 10 }}
+              transition={{ duration: 0.3 }}
               className="mb-6 text-center bg-green-100 text-green-700 border border-green-300 rounded-lg px-4 py-3 w-full max-w-2xl"
             >
               <p className="font-semibold">✅ Request Received!</p>
@@ -87,7 +88,7 @@ export default function DemoPage() {
           )}
         </AnimatePresence>
 
-        {/* Form Section */}
+        {/* Form */}
         <motion.form
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -141,7 +142,6 @@ export default function DemoPage() {
             />
           </div>
 
-          {/* Submit Button */}
           <button
             type="submit"
             disabled={loading}
@@ -155,7 +155,7 @@ export default function DemoPage() {
           </button>
         </motion.form>
 
-        {/* Trust Section */}
+        {/* Trust Footer */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}

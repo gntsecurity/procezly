@@ -7,14 +7,13 @@ export default function CookieBanner() {
   const [visible, setVisible] = useState(false);
 
   useEffect(() => {
-    // Use idle time for localStorage check
     const checkConsent = () => {
       const consent = localStorage.getItem("cookie-consent");
       if (!consent) setVisible(true);
     };
 
     if ("requestIdleCallback" in window) {
-      (window as any).requestIdleCallback(checkConsent);
+      (window as unknown as { requestIdleCallback: (cb: () => void) => void }).requestIdleCallback(checkConsent);
     } else {
       setTimeout(checkConsent, 200); // Fallback
     }

@@ -18,7 +18,7 @@ interface KamishibaiCard {
   modified?: string;
 }
 
-const KamishibaiPage = () => {
+export default function KamishibaiPage() {
   const [cards, setCards] = useState<KamishibaiCard[]>([]);
   const [isAdmin, setIsAdmin] = useState(false);
   const [orgId, setOrgId] = useState<string | null>(null);
@@ -39,47 +39,44 @@ const KamishibaiPage = () => {
   });
 
   useEffect(() => {
-    const fetchData = async () => {
-      const { data: user } = await supabase.auth.getUser();
-      if (!user?.user?.id) return;
+    const fetchCards = async () => {
+      const { data: userData } = await supabase.auth.getUser();
+      if (!userData?.user?.id) return;
 
-      const { data: roleData } = await supabase
+      const { data: role } = await supabase
         .from("roles")
         .select("role, organization_id")
-        .eq("user_id", user.user.id)
+        .eq("user_id", userData.user.id)
         .single();
 
-      if (!roleData) return;
+      if (!role) return;
 
-      setIsAdmin(roleData.role === "admin");
-      setOrgId(roleData.organization_id);
-      setUserId(user.user.id);
+      setIsAdmin(role.role === "admin");
+      setOrgId(role.organization_id);
+      setUserId(userData.user.id);
 
-      const { data: cards } = await supabase
+      const { data: cardData } = await supabase
         .from("kamishibai_cards")
         .select("*")
-        .eq("organization_id", roleData.organization_id)
+        .eq("organization_id", role.organization_id)
         .order("modified", { ascending: false });
 
-      setCards(cards || []);
+      setCards(cardData || []);
     };
 
-    fetchData();
+    fetchCards();
   }, []);
 
-  useEffect(() => {
-    if (orgId) console.debug("orgId:", orgId);
-  }, [orgId]);
-
   const handleDelete = async (id: string) => {
-    if (!confirm("Delete this card?")) return;
+    if (!confirm("Are you sure you want to delete this card?")) return;
     await supabase.from("kamishibai_cards").delete().eq("id", id);
-    setCards(cards.filter((card) => card.id !== id));
+    setCards((prev) => prev.filter((c) => c.id !== id));
   };
 
   const handleEdit = (card: KamishibaiCard) => {
     setEditId(card.id);
-    setFormData({ ...card });
+    const { id, ...rest } = card;
+    setFormData(rest);
     setModalOpen(true);
   };
 
@@ -110,15 +107,12 @@ const KamishibaiPage = () => {
       modified: new Date().toISOString(),
     };
 
-    let error;
-    if (editId) {
-      ({ error } = await supabase.from("kamishibai_cards").update(payload).eq("id", editId));
-    } else {
-      ({ error } = await supabase.from("kamishibai_cards").insert(payload));
-    }
+    const { error } = editId
+      ? await supabase.from("kamishibai_cards").update(payload).eq("id", editId)
+      : await supabase.from("kamishibai_cards").insert(payload);
 
     if (error) {
-      console.error("Save error:", error);
+      console.error("Error saving card:", error.message);
       return;
     }
 
@@ -171,16 +165,10 @@ const KamishibaiPage = () => {
                 <td className="px-4 py-2 text-gray-900">{card.responsible}</td>
                 {isAdmin && (
                   <td className="px-4 py-2 text-right space-x-2">
-                    <button
-                      className="text-blue-600 hover:text-blue-800"
-                      onClick={() => handleEdit(card)}
-                    >
+                    <button onClick={() => handleEdit(card)} className="text-blue-600 hover:text-blue-800">
                       <Pencil size={18} />
                     </button>
-                    <button
-                      className="text-red-600 hover:text-red-800"
-                      onClick={() => handleDelete(card.id)}
-                    >
+                    <button onClick={() => handleDelete(card.id)} className="text-red-600 hover:text-red-800">
                       <Trash2 size={18} />
                     </button>
                   </td>
@@ -201,90 +189,27 @@ const KamishibaiPage = () => {
       {modalOpen && (
         <div className="fixed inset-0 z-50 bg-black/40 flex items-center justify-center px-4">
           <div className="bg-white rounded-lg w-full max-w-2xl p-6 relative">
-            <button
-              onClick={resetForm}
-              className="absolute top-3 right-3 text-gray-400 hover:text-gray-600"
-            >
+            <button onClick={resetForm} className="absolute top-3 right-3 text-gray-400 hover:text-gray-600">
               <X size={20} />
             </button>
-            <h2 className="text-lg font-semibold mb-4">
-              {editId ? "Edit Card" : "Add New Card"}
-            </h2>
+            <h2 className="text-lg font-semibold mb-4">{editId ? "Edit Card" : "Add New Card"}</h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <input
-                className="border border-gray-300 rounded px-3 py-2"
-                placeholder="UID"
-                value={formData.uid}
-                onChange={(e) => setFormData({ ...formData, uid: e.target.value })}
-              />
-              <input
-                className="border border-gray-300 rounded px-3 py-2"
-                placeholder="Area"
-                value={formData.area}
-                onChange={(e) => setFormData({ ...formData, area: e.target.value })}
-              />
-              <input
-                className="border border-gray-300 rounded px-3 py-2"
-                placeholder="Responsible"
-                value={formData.responsible}
-                onChange={(e) => setFormData({ ...formData, responsible: e.target.value })}
-              />
-              <input
-                className="border border-gray-300 rounded px-3 py-2"
-                placeholder="Tips"
-                value={formData.tips}
-                onChange={(e) => setFormData({ ...formData, tips: e.target.value })}
-              />
-              <textarea
-                className="border border-gray-300 rounded px-3 py-2 col-span-1 sm:col-span-2"
-                placeholder="Task"
-                value={formData.task}
-                onChange={(e) => setFormData({ ...formData, task: e.target.value })}
-              />
-              <textarea
-                className="border border-gray-300 rounded px-3 py-2 col-span-1 sm:col-span-2"
-                placeholder="Supporting Documents"
-                value={formData.supporting_documents}
-                onChange={(e) =>
-                  setFormData({ ...formData, supporting_documents: e.target.value })
-                }
-              />
-              <textarea
-                className="border border-gray-300 rounded px-3 py-2 col-span-1 sm:col-span-2"
-                placeholder="Non-Conformance"
-                value={formData.non_conformance}
-                onChange={(e) =>
-                  setFormData({ ...formData, non_conformance: e.target.value })
-                }
-              />
-              <textarea
-                className="border border-gray-300 rounded px-3 py-2 col-span-1 sm:col-span-2"
-                placeholder="Safety Concerns"
-                value={formData.safety_concerns}
-                onChange={(e) =>
-                  setFormData({ ...formData, safety_concerns: e.target.value })
-                }
-              />
+              <input className="border rounded px-3 py-2" placeholder="UID" value={formData.uid} onChange={(e) => setFormData({ ...formData, uid: e.target.value })} />
+              <input className="border rounded px-3 py-2" placeholder="Area" value={formData.area} onChange={(e) => setFormData({ ...formData, area: e.target.value })} />
+              <input className="border rounded px-3 py-2" placeholder="Responsible" value={formData.responsible} onChange={(e) => setFormData({ ...formData, responsible: e.target.value })} />
+              <input className="border rounded px-3 py-2" placeholder="Tips" value={formData.tips} onChange={(e) => setFormData({ ...formData, tips: e.target.value })} />
+              <textarea className="border rounded px-3 py-2 col-span-1 sm:col-span-2" placeholder="Task" value={formData.task} onChange={(e) => setFormData({ ...formData, task: e.target.value })} />
+              <textarea className="border rounded px-3 py-2 col-span-1 sm:col-span-2" placeholder="Supporting Documents" value={formData.supporting_documents} onChange={(e) => setFormData({ ...formData, supporting_documents: e.target.value })} />
+              <textarea className="border rounded px-3 py-2 col-span-1 sm:col-span-2" placeholder="Non-Conformance" value={formData.non_conformance} onChange={(e) => setFormData({ ...formData, non_conformance: e.target.value })} />
+              <textarea className="border rounded px-3 py-2 col-span-1 sm:col-span-2" placeholder="Safety Concerns" value={formData.safety_concerns} onChange={(e) => setFormData({ ...formData, safety_concerns: e.target.value })} />
             </div>
-            <div className="mt-6 flex justify-end space-x-2">
-              <button
-                onClick={resetForm}
-                className="px-4 py-2 border rounded text-gray-700 hover:bg-gray-100"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleSave}
-                className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
-              >
-                Save
-              </button>
+            <div className="mt-6 flex justify-end gap-2">
+              <button onClick={resetForm} className="px-4 py-2 border rounded text-gray-700 hover:bg-gray-100">Cancel</button>
+              <button onClick={handleSave} className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">Save</button>
             </div>
           </div>
         </div>
       )}
     </div>
   );
-};
-
-export default KamishibaiPage;
+}

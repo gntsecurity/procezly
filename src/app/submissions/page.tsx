@@ -25,7 +25,7 @@ interface User {
   email: string;
 }
 
-const SubmissionsPage = () => {
+export default function SubmissionsPage() {
   const [isAdmin, setIsAdmin] = useState(false);
   const [orgId, setOrgId] = useState<string | null>(null);
   const [userId, setUserId] = useState<string | null>(null);
@@ -39,6 +39,7 @@ const SubmissionsPage = () => {
     const init = async () => {
       const { data: user } = await supabase.auth.getUser();
       if (!user?.user?.id) return;
+
       const uid = user.user.id;
       setUserId(uid);
 
@@ -52,28 +53,24 @@ const SubmissionsPage = () => {
       setIsAdmin(roleData.role === "admin");
       setOrgId(roleData.organization_id);
 
-      const [{ data: cardData }, { data: userData }, { data: submissionData }] = await Promise.all([
+      const [cardRes, userRes, submissionRes] = await Promise.all([
         supabase.from("kamishibai_cards").select("id, uid").eq("organization_id", roleData.organization_id),
         supabase.from("users").select("id, email"),
-        supabase
-          .from("submissions")
-          .select("*")
-          .eq("organization_id", roleData.organization_id)
-          .order("submitted_at", { ascending: false }),
+        supabase.from("submissions").select("*").eq("organization_id", roleData.organization_id).order("submitted_at", { ascending: false }),
       ]);
 
-      const cardMap = Object.fromEntries((cardData || []).map((c) => [c.id, c.uid]));
-      const userMap = Object.fromEntries((userData || []).map((u) => [u.id, u.email]));
+      const cardMap = Object.fromEntries((cardRes.data || []).map((c) => [c.id, c.uid]));
+      const userMap = Object.fromEntries((userRes.data || []).map((u) => [u.id, u.email]));
 
-      const withMeta = (submissionData || []).map((s) => ({
+      const enriched = (submissionRes.data || []).map((s) => ({
         ...s,
         card_uid: cardMap[s.card_id] || "Unknown",
         user_email: userMap[s.user_id] || "Unknown",
       }));
 
-      setCards(cardData || []);
-      setUsers(userData || []);
-      setSubmissions(isAdmin ? withMeta : withMeta.filter((s) => s.user_id === uid));
+      setCards(cardRes.data || []);
+      setUsers(userRes.data || []);
+      setSubmissions(isAdmin ? enriched : enriched.filter((s) => s.user_id === uid));
       setLoading(false);
     };
 
@@ -81,7 +78,7 @@ const SubmissionsPage = () => {
   }, []);
 
   const handleSubmit = async () => {
-    if (!orgId || !userId) return;
+    if (!orgId || !userId || !form.card_id || !form.status) return;
 
     const payload = {
       ...form,
@@ -102,13 +99,13 @@ const SubmissionsPage = () => {
     const cardMap = Object.fromEntries(cards.map((c) => [c.id, c.uid]));
     const userMap = Object.fromEntries(users.map((u) => [u.id, u.email]));
 
-    const withMeta = (updated || []).map((s) => ({
+    const enriched = (updated || []).map((s) => ({
       ...s,
       card_uid: cardMap[s.card_id] || "Unknown",
       user_email: userMap[s.user_id] || "Unknown",
     }));
 
-    setSubmissions(isAdmin ? withMeta : withMeta.filter((s) => s.user_id === userId));
+    setSubmissions(isAdmin ? enriched : enriched.filter((s) => s.user_id === userId));
   };
 
   if (loading) {
@@ -162,7 +159,7 @@ const SubmissionsPage = () => {
         <button
           onClick={handleSubmit}
           disabled={!form.card_id || !form.status}
-          className="mt-4 bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 flex items-center"
+          className="mt-4 bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 flex items-center disabled:opacity-50"
         >
           <Send size={18} className="mr-2" />
           Submit
@@ -188,7 +185,7 @@ const SubmissionsPage = () => {
                 <td className="px-4 py-2 text-gray-900">{s.notes}</td>
                 <td className="px-4 py-2 text-gray-900">{s.user_email}</td>
                 <td className="px-4 py-2 text-gray-900">
-                  {new Date(s.submitted_at!).toLocaleString()}
+                  {new Date(s.submitted_at || "").toLocaleString()}
                 </td>
               </tr>
             ))}
@@ -208,6 +205,4 @@ const SubmissionsPage = () => {
       </div>
     </div>
   );
-};
-
-export default SubmissionsPage;
+}

@@ -6,12 +6,20 @@ import { supabase } from "../../utils/supabaseClient";
 const daysOfWeek = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"];
 const frequencies = ["daily", "weekly", "monthly"];
 
-const AuditSchedulePage = () => {
+type ScheduleForm = {
+  frequency: "daily" | "weekly" | "monthly";
+  day_of_week?: string;
+  time_of_day: string;
+  timezone: string;
+  is_active: boolean;
+};
+
+export default function AuditSchedulePage() {
   const [orgId, setOrgId] = useState<string | null>(null);
   const [isAdmin, setIsAdmin] = useState(false);
   const [saving, setSaving] = useState(false);
 
-  const [form, setForm] = useState({
+  const [form, setForm] = useState<ScheduleForm>({
     frequency: "weekly",
     day_of_week: "Monday",
     time_of_day: "08:00",
@@ -31,6 +39,7 @@ const AuditSchedulePage = () => {
         .single();
 
       if (!roleData) return;
+
       setOrgId(roleData.organization_id);
       setIsAdmin(roleData.role === "admin");
 
@@ -67,7 +76,10 @@ const AuditSchedulePage = () => {
       .from("audit_schedule_settings")
       .upsert(payload, { onConflict: "organization_id" });
 
-    if (error) console.error(error);
+    if (error) {
+      console.error("Save failed:", error.message);
+    }
+
     setSaving(false);
   };
 
@@ -84,7 +96,9 @@ const AuditSchedulePage = () => {
             <select
               className="w-full border px-3 py-2 rounded"
               value={form.frequency}
-              onChange={(e) => setForm({ ...form, frequency: e.target.value })}
+              onChange={(e) =>
+                setForm({ ...form, frequency: e.target.value as ScheduleForm["frequency"] })
+              }
             >
               {frequencies.map((f) => (
                 <option key={f} value={f}>
@@ -102,9 +116,9 @@ const AuditSchedulePage = () => {
                 value={form.day_of_week}
                 onChange={(e) => setForm({ ...form, day_of_week: e.target.value })}
               >
-                {daysOfWeek.map((d) => (
-                  <option key={d} value={d}>
-                    {d}
+                {daysOfWeek.map((day) => (
+                  <option key={day} value={day}>
+                    {day}
                   </option>
                 ))}
               </select>
@@ -145,7 +159,7 @@ const AuditSchedulePage = () => {
           <button
             onClick={handleSave}
             disabled={saving}
-            className="px-5 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+            className="px-5 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50"
           >
             {saving ? "Saving..." : "Save Settings"}
           </button>
@@ -153,6 +167,4 @@ const AuditSchedulePage = () => {
       </div>
     </div>
   );
-};
-
-export default AuditSchedulePage;
+}

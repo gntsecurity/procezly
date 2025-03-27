@@ -12,68 +12,70 @@ import {
   FileText,
 } from "lucide-react";
 
-const Dashboard = () => {
-  const [dashboardData, setDashboardData] = useState({
+interface DashboardData {
+  totalCards: number;
+  activeUsers: number;
+  complianceScore: number;
+}
+
+export default function DashboardPage() {
+  const [dashboardData, setDashboardData] = useState<DashboardData>({
     totalCards: 0,
     activeUsers: 0,
     complianceScore: 0,
   });
 
-  const [userName, setUserName] = useState("");
+  const [userName, setUserName] = useState("there");
   const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   useEffect(() => {
     const checkAuth = async () => {
-      const { data: session } = await supabase.auth.getSession();
-      if (!session?.session) {
+      const { data } = await supabase.auth.getSession();
+      if (!data.session) {
         window.location.href = "/login";
         return;
       }
       setIsAuthenticated(true);
     };
 
-    const fetchData = async () => {
-      const {
-        data: user,
-        error: userError,
-      } = await supabase.auth.getUser();
+    const fetchDashboardData = async () => {
+      const { data: userData, error: userError } = await supabase.auth.getUser();
+      if (userError || !userData?.user?.id) return;
 
-      if (userError) console.warn("User error:", userError);
-      if (!user?.user?.id) return;
+      setUserName(userData.user.email?.split("@")[0] || "there");
 
-      setUserName(user.user.email?.split("@")[0] || "there");
-
-      const { data: roleData } = await supabase
+      const { data: role } = await supabase
         .from("roles")
         .select("organization_id")
-        .eq("user_id", user.user.id)
+        .eq("user_id", userData.user.id)
         .single();
 
-      if (!roleData) return;
+      if (!role?.organization_id) return;
 
-      const { data: cards } = await supabase
-        .from("kamishibai_cards")
-        .select("*")
-        .eq("organization_id", roleData.organization_id);
-
-      const { data: users } = await supabase
-        .from("roles")
-        .select("user_id")
-        .eq("organization_id", roleData.organization_id);
+      const [{ data: cards }, { data: users }] = await Promise.all([
+        supabase
+          .from("kamishibai_cards")
+          .select("*")
+          .eq("organization_id", role.organization_id),
+        supabase
+          .from("roles")
+          .select("user_id")
+          .eq("organization_id", role.organization_id),
+      ]);
 
       setDashboardData({
         totalCards: cards?.length || 0,
         activeUsers: users?.length || 0,
-        complianceScore: 87,
+        complianceScore: 87, // Static placeholder
       });
     };
 
     checkAuth();
-    fetchData();
+    fetchDashboardData();
   }, []);
 
   if (!isAuthenticated) {
-    return <div>Loading...</div>;
+    return <div className="p-6 text-center text-gray-500">Loading...</div>;
   }
 
   return (
@@ -81,8 +83,8 @@ const Dashboard = () => {
       <h1 className="text-xl sm:text-3xl font-semibold text-gray-900">
         Hey {userName}, welcome back 👋
       </h1>
-      <p className="text-gray-600 text-sm sm:text-base mt-1">
-        Your team is making progress! Here&apos;s the latest snapshot.
+      <p className="text-sm sm:text-base text-gray-600 mt-1">
+        Your team is making progress! Here’s the latest snapshot.
       </p>
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 sm:gap-6 mt-6">
@@ -91,6 +93,7 @@ const Dashboard = () => {
         <StatCard icon={<ShieldCheck size={24} className="text-blue-600" />} title="Compliance Score" value={`${dashboardData.complianceScore}%`} />
       </div>
 
+      {/* Reserved for future stats */}
       <div className="hidden">
         <AlertTriangle />
         <CheckCircle />
@@ -99,17 +102,17 @@ const Dashboard = () => {
       </div>
     </div>
   );
-};
+}
 
-const StatCard = ({
+function StatCard({
   icon,
   title,
   value,
 }: {
   icon: React.ReactNode;
   title: string;
-  value: string | number;
-}) => {
+  value: number | string;
+}) {
   return (
     <div className="bg-white px-4 py-3 sm:p-6 rounded-lg shadow-sm flex items-center space-x-4 border border-gray-200 hover:shadow-md transition">
       <div className="p-2 sm:p-3 bg-gray-100 rounded-full">{icon}</div>
@@ -119,6 +122,4 @@ const StatCard = ({
       </div>
     </div>
   );
-};
-
-export default Dashboard;
+}

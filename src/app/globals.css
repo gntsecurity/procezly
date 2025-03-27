@@ -2,7 +2,7 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Ensure the page can scroll properly */
+/* === Base Layout Reset === */
 html, body {
   height: 100%;
   width: 100%;
@@ -10,81 +10,86 @@ html, body {
   padding: 0;
   overflow-x: hidden;
   overflow-y: auto;
-  background-color: white;
-  color: #111;
   font-family: 'Inter', sans-serif;
+  background-color: #ffffff;
+  color: #111111;
+  scroll-behavior: smooth;
 }
 
-/* Fix full-height layout */
 body {
   display: flex;
   flex-direction: column;
   min-height: 100vh;
 }
 
-/* Sidebar */
+/* === Prevent Flashing of Unstyled Content === */
+* {
+  transition: all 0.3s ease-in-out;
+}
+
+/* === Main Layout Containers === */
+main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+/* === Sidebar (Desktop) === */
 .sidebar {
-  height: 100vh;
   position: fixed;
   top: 0;
   left: 0;
   width: 16rem;
-  background: white;
+  height: 100vh;
+  background-color: #ffffff;
   border-right: 1px solid #e5e7eb;
   box-shadow: 2px 0 10px rgba(0, 0, 0, 0.05);
   display: flex;
   flex-direction: column;
   justify-content: space-between;
+  z-index: 40;
 }
 
-/* Sidebar Collapsed */
+/* Collapsed Sidebar */
 .sidebar.collapsed {
   width: 4rem;
 }
 
-/* Main Content */
+/* Main Content Shift (for sidebar space) */
 .main-content {
   flex: 1;
-  display: flex;
-  flex-direction: column;
   margin-left: 16rem;
   padding: 2rem;
+  display: flex;
+  flex-direction: column;
 }
 
-/* Adjust for collapsed sidebar */
+/* Adjust margin if sidebar is collapsed */
 .sidebar.collapsed + .main-content {
   margin-left: 4rem;
 }
 
-/* Mobile Fixes */
+/* === Mobile Fixes === */
 @media (max-width: 768px) {
   html {
     font-size: 14px;
   }
 
   body {
-    padding-bottom: 80px;
+    padding-bottom: 80px; /* For mobile nav bar space */
   }
 
   .container {
     max-width: 100%;
     padding: 0 16px;
   }
-}
 
-/* Smooth Scrolling */
-html {
-  scroll-behavior: smooth;
-}
+  .main-content {
+    margin-left: 0;
+    padding: 1.5rem 1rem;
+  }
 
-/* Prevent Flashing of Unstyled Content */
-* {
-  transition: all 0.3s ease-in-out;
-}
-
-/* Ensure main content stretches to push footer to bottom */
-main {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
+  .sidebar {
+    display: none;
+  }
 }
