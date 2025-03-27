@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { supabase } from "../../utils/supabaseClient";
+import { supabase } from "@/utils/supabaseClient";
 import {
   ClipboardList,
   ShieldCheck,
@@ -66,7 +66,7 @@ export default function DashboardPage() {
       setDashboardData({
         totalCards: cards?.length || 0,
         activeUsers: users?.length || 0,
-        complianceScore: 87, // Static placeholder
+        complianceScore: 87, // Placeholder
       });
     };
 

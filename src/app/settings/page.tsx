@@ -76,10 +76,7 @@ export default function AuditSchedulePage() {
       .from("audit_schedule_settings")
       .upsert(payload, { onConflict: "organization_id" });
 
-    if (error) {
-      console.error("Save failed:", error.message);
-    }
-
+    if (error) console.error("Save failed:", error.message);
     setSaving(false);
   };
 
