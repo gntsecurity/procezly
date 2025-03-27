@@ -1,16 +1,15 @@
 // next.config.ts
-const withPWA = require("next-pwa")({
-  dest: "public",
-  disable: process.env.NODE_ENV === "development",
-  register: true,
-  skipWaiting: true,
-});
 
+/** @type {import('next').NextConfig} */
 const nextConfig = {
-  reactStrictMode: true,
+  output: 'export',
   experimental: {
-    serverActions: {},
+    serverActions: true,
   },
+  images: {
+    unoptimized: true, // Required for static exports if using next/image
+  },
+  reactStrictMode: true,
 };
 
-module.exports = withPWA(nextConfig);
+export default nextConfig;
