@@ -1,15 +1,9 @@
 // next.config.ts
-
-/** @type {import('next').NextConfig} */
 const nextConfig = {
-  output: 'export',
+  output: "export",
   experimental: {
-    serverActions: {},
+    serverActions: {}, // Fix: Should be an object, not a boolean
   },
-  images: {
-    unoptimized: true, // Required for static exports if using next/image
-  },
-  reactStrictMode: true,
 };
 
 export default nextConfig;

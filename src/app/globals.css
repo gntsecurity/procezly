@@ -2,7 +2,7 @@
 @tailwind components;
 @tailwind utilities;
 
-/* === Base Layout Reset === */
+/* Ensure the page can scroll properly */
 html, body {
   height: 100%;
   width: 100%;
@@ -10,86 +10,81 @@ html, body {
   padding: 0;
   overflow-x: hidden;
   overflow-y: auto;
+  background-color: white;
+  color: #111;
   font-family: 'Inter', sans-serif;
-  background-color: #ffffff;
-  color: #111111;
-  scroll-behavior: smooth;
 }
 
+/* Fix full-height layout */
 body {
   display: flex;
   flex-direction: column;
   min-height: 100vh;
 }
 
-/* === Prevent Flashing of Unstyled Content === */
-* {
-  transition: all 0.3s ease-in-out;
-}
-
-/* === Main Layout Containers === */
-main {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-}
-
-/* === Sidebar (Desktop) === */
+/* Sidebar */
 .sidebar {
+  height: 100vh;
   position: fixed;
   top: 0;
   left: 0;
   width: 16rem;
-  height: 100vh;
-  background-color: #ffffff;
+  background: white;
   border-right: 1px solid #e5e7eb;
   box-shadow: 2px 0 10px rgba(0, 0, 0, 0.05);
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  z-index: 40;
 }
 
-/* Collapsed Sidebar */
+/* Sidebar Collapsed */
 .sidebar.collapsed {
   width: 4rem;
 }
 
-/* Main Content Shift (for sidebar space) */
+/* Main Content */
 .main-content {
   flex: 1;
-  margin-left: 16rem;
-  padding: 2rem;
   display: flex;
   flex-direction: column;
+  margin-left: 16rem;
+  padding: 2rem;
 }
 
-/* Adjust margin if sidebar is collapsed */
+/* Adjust for collapsed sidebar */
 .sidebar.collapsed + .main-content {
   margin-left: 4rem;
 }
 
-/* === Mobile Fixes === */
+/* Mobile Fixes */
 @media (max-width: 768px) {
   html {
     font-size: 14px;
   }
 
   body {
-    padding-bottom: 80px; /* For mobile nav bar space */
+    padding-bottom: 80px;
   }
 
   .container {
     max-width: 100%;
     padding: 0 16px;
   }
+}
 
-  .main-content {
-    margin-left: 0;
-    padding: 1.5rem 1rem;
-  }
+/* Smooth Scrolling */
+html {
+  scroll-behavior: smooth;
+}
 
-  .sidebar {
-    display: none;
-  }
+/* Prevent Flashing of Unstyled Content */
+* {
+  transition: all 0.3s ease-in-out;
+}
+
+/* Ensure main content stretches to push footer to bottom */
+main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
 }

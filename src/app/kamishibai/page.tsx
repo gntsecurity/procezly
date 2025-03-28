@@ -18,7 +18,7 @@ interface KamishibaiCard {
   modified?: string;
 }
 
-export default function KamishibaiPage() {
+const KamishibaiPage = () => {
   const [cards, setCards] = useState<KamishibaiCard[]>([]);
   const [isAdmin, setIsAdmin] = useState(false);
   const [orgId, setOrgId] = useState<string | null>(null);
@@ -67,16 +67,19 @@ export default function KamishibaiPage() {
     fetchData();
   }, []);
 
+  useEffect(() => {
+    if (orgId) console.debug("orgId:", orgId);
+  }, [orgId]);
+
   const handleDelete = async (id: string) => {
     if (!confirm("Delete this card?")) return;
     await supabase.from("kamishibai_cards").delete().eq("id", id);
-    setCards((prev) => prev.filter((card) => card.id !== id));
+    setCards(cards.filter((card) => card.id !== id));
   };
 
   const handleEdit = (card: KamishibaiCard) => {
     setEditId(card.id);
-    const { id, ...rest } = card;
-    setFormData(rest);
+    setFormData({ ...card });
     setModalOpen(true);
   };
 
@@ -282,4 +285,6 @@ export default function KamishibaiPage() {
       )}
     </div>
   );
-}
+};
+
+export default KamishibaiPage;

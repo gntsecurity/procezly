@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { supabase } from "@/utils/supabaseClient";
+import { supabase } from "../../utils/supabaseClient";
 import {
   ClipboardList,
   ShieldCheck,
@@ -12,70 +12,68 @@ import {
   FileText,
 } from "lucide-react";
 
-interface DashboardData {
-  totalCards: number;
-  activeUsers: number;
-  complianceScore: number;
-}
-
-export default function DashboardPage() {
-  const [dashboardData, setDashboardData] = useState<DashboardData>({
+const Dashboard = () => {
+  const [dashboardData, setDashboardData] = useState({
     totalCards: 0,
     activeUsers: 0,
     complianceScore: 0,
   });
 
-  const [userName, setUserName] = useState("there");
+  const [userName, setUserName] = useState("");
   const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   useEffect(() => {
     const checkAuth = async () => {
-      const { data } = await supabase.auth.getSession();
-      if (!data.session) {
+      const { data: session } = await supabase.auth.getSession();
+      if (!session?.session) {
         window.location.href = "/login";
         return;
       }
       setIsAuthenticated(true);
     };
 
-    const fetchDashboardData = async () => {
-      const { data: userData, error: userError } = await supabase.auth.getUser();
-      if (userError || !userData?.user?.id) return;
+    const fetchData = async () => {
+      const {
+        data: user,
+        error: userError,
+      } = await supabase.auth.getUser();
 
-      setUserName(userData.user.email?.split("@")[0] || "there");
+      if (userError) console.warn("User error:", userError);
+      if (!user?.user?.id) return;
 
-      const { data: role } = await supabase
+      setUserName(user.user.email?.split("@")[0] || "there");
+
+      const { data: roleData } = await supabase
         .from("roles")
         .select("organization_id")
-        .eq("user_id", userData.user.id)
+        .eq("user_id", user.user.id)
         .single();
 
-      if (!role?.organization_id) return;
+      if (!roleData) return;
 
-      const [{ data: cards }, { data: users }] = await Promise.all([
-        supabase
-          .from("kamishibai_cards")
-          .select("*")
-          .eq("organization_id", role.organization_id),
-        supabase
-          .from("roles")
-          .select("user_id")
-          .eq("organization_id", role.organization_id),
-      ]);
+      const { data: cards } = await supabase
+        .from("kamishibai_cards")
+        .select("*")
+        .eq("organization_id", roleData.organization_id);
+
+      const { data: users } = await supabase
+        .from("roles")
+        .select("user_id")
+        .eq("organization_id", roleData.organization_id);
 
       setDashboardData({
         totalCards: cards?.length || 0,
         activeUsers: users?.length || 0,
-        complianceScore: 87, // Placeholder
+        complianceScore: 87,
       });
     };
 
     checkAuth();
-    fetchDashboardData();
+    fetchData();
   }, []);
 
   if (!isAuthenticated) {
-    return <div className="p-6 text-center text-gray-500">Loading...</div>;
+    return <div>Loading...</div>;
   }
 
   return (
@@ -83,8 +81,8 @@ export default function DashboardPage() {
       <h1 className="text-xl sm:text-3xl font-semibold text-gray-900">
         Hey {userName}, welcome back 👋
       </h1>
-      <p className="text-sm sm:text-base text-gray-600 mt-1">
-        Your team is making progress! Here’s the latest snapshot.
+      <p className="text-gray-600 text-sm sm:text-base mt-1">
+        Your team is making progress! Here&apos;s the latest snapshot.
       </p>
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 sm:gap-6 mt-6">
@@ -93,7 +91,6 @@ export default function DashboardPage() {
         <StatCard icon={<ShieldCheck size={24} className="text-blue-600" />} title="Compliance Score" value={`${dashboardData.complianceScore}%`} />
       </div>
 
-      {/* Reserved for future stats */}
       <div className="hidden">
         <AlertTriangle />
         <CheckCircle />
@@ -102,17 +99,17 @@ export default function DashboardPage() {
       </div>
     </div>
   );
-}
+};
 
-function StatCard({
+const StatCard = ({
   icon,
   title,
   value,
 }: {
   icon: React.ReactNode;
   title: string;
-  value: number | string;
-}) {
+  value: string | number;
+}) => {
   return (
     <div className="bg-white px-4 py-3 sm:p-6 rounded-lg shadow-sm flex items-center space-x-4 border border-gray-200 hover:shadow-md transition">
       <div className="p-2 sm:p-3 bg-gray-100 rounded-full">{icon}</div>
@@ -122,4 +119,6 @@ function StatCard({
       </div>
     </div>
   );
-}
+};
+
+export default Dashboard;

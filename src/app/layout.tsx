@@ -1,4 +1,3 @@
-// src/app/layout.tsx
 "use client";
 
 import { useEffect, useState } from "react";
@@ -7,7 +6,6 @@ import { supabase } from "../utils/supabaseClient";
 import Sidebar from "../components/Sidebar";
 import Footer from "../components/Footer";
 import CookieBanner from "../components/CookieBanner";
-import InstallPrompt from "../components/InstallPrompt";
 import "./globals.css";
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
@@ -18,14 +16,13 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   const [isMobile, setIsMobile] = useState(false);
 
   const dashboardRoutes = ["/dashboard", "/kamishibai", "/submissions", "/settings"];
-  const isDashboardPage = dashboardRoutes.some((route) => pathname.startsWith(route));
+  const isDashboardPage = dashboardRoutes.some(route => pathname.startsWith(route));
 
   useEffect(() => {
     if ("serviceWorker" in navigator) {
-      navigator.serviceWorker
-        .register("/service-worker.js")
-        .then(() => console.log("Service Worker Registered"))
-        .catch((err) => console.error("Service Worker Error:", err));
+      navigator.serviceWorker.register("/sw.js").then(() => {
+        console.log("Service Worker Registered");
+      });
     }
   }, []);
 
@@ -65,14 +62,13 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)" />
         <meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)" />
         <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-        <link rel="apple-touch-icon" href="/icon-180x180.png" />
-        <title>Procezly</title>
       </head>
       <body className="bg-white text-gray-900">
         <div className="flex min-h-screen w-full relative">
           {isDashboardPage && (
             <Sidebar collapsed={collapsed} setCollapsed={setCollapsed} />
           )}
+
           <div
             className={`flex flex-col flex-1 transition-all duration-300 ease-in-out ${
               isDashboardPage && !isMobile ? (collapsed ? "ml-16" : "ml-64") : ""
@@ -81,7 +77,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <main className="flex-1">{children}</main>
             {!isDashboardPage && <Footer />}
             <CookieBanner />
-            <InstallPrompt />
           </div>
         </div>
       </body>

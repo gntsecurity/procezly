@@ -1,8 +1,4 @@
-"use client";
-
 import { useState } from "react";
-import Link from "next/link";
-import Image from "next/image";
 
 export default function Footer() {
   const [email, setEmail] = useState("");
@@ -31,36 +27,29 @@ export default function Footer() {
   };
 
   return (
-    <footer className="bg-white pt-12 pb-6">
+    <footer className="bg-white py-12">
       <div className="max-w-[1400px] mx-auto px-6 flex flex-col md:flex-row justify-between items-start gap-10">
         <div className="w-full md:w-1/3">
-          <Link href="/">
-            <Image
-              src="/logo.png"
-              alt="Procezly Logo"
-              width={160}
-              height={40}
-              className="h-8 w-auto"
-              priority
-            />
-          </Link>
+          <img
+            src="/logo.png"
+            alt="Procezly Logo"
+            className="h-8 w-auto"
+          />
           <p className="text-gray-600 mt-2">
             Join our newsletter to stay up to date on features and releases.
           </p>
           <div className="mt-4 flex space-x-4">
-            <a href="#" className="text-gray-500 hover:text-blue-600">
-              {/* Placeholder for icon */}
-              <span className="text-xl">📘</span>
+            <a href="#" className="text-gray-500 hover:text-gray-900">
+              <i className="fab fa-facebook text-xl"></i>
             </a>
-            <a href="#" className="text-gray-500 hover:text-blue-600">
-              {/* Placeholder for icon */}
-              <span className="text-xl">🔗</span>
+            <a href="#" className="text-gray-500 hover:text-gray-900">
+              <i className="fab fa-linkedin text-xl"></i>
             </a>
           </div>
         </div>
 
         <div className="w-full md:w-1/3">
-          <form onSubmit={handleSubscribe} className="flex flex-col sm:flex-row gap-2">
+          <form onSubmit={handleSubscribe} className="flex space-x-2">
             <input
               type="email"
               value={email}
@@ -77,34 +66,32 @@ export default function Footer() {
               {loading ? "Sending..." : "Subscribe"}
             </button>
           </form>
-
           {subscribed && (
             <p className="text-green-600 text-sm mt-2 font-medium">
               ✅ Subscribed! Check your email.
             </p>
           )}
-
           <p className="text-gray-500 text-sm mt-2">
-            By subscribing, you agree to our{" "}
-            <Link href="/privacy-policy" className="text-blue-600 hover:underline">
+            By subscribing you agree to our{" "}
+            <a href="/privacy-policy" className="text-blue-600 hover:underline">
               Privacy Policy
-            </Link>{" "}
-            and consent to receive updates.
+            </a>{" "}
+            and consent to receive updates from our company.
           </p>
         </div>
       </div>
 
       <div className="w-full max-w-[1400px] mx-auto mt-10 px-6 flex flex-col md:flex-row justify-between items-center border-t pt-6">
-        <p className="text-gray-500 text-sm text-center md:text-left">
+        <p className="text-gray-500 text-sm">
           &copy; 2025 Procezly. All rights reserved. A product of GNT Security.
         </p>
-        <div className="flex space-x-4 text-sm mt-4 md:mt-0">
-          <Link href="/privacy-policy" className="text-gray-500 hover:underline">
+        <div className="flex space-x-4 text-sm">
+          <a href="/privacy-policy" className="text-gray-500 hover:underline">
             Privacy Policy
-          </Link>
-          <Link href="/terms" className="text-gray-500 hover:underline">
+          </a>
+          <a href="/terms" className="text-gray-500 hover:underline">
             Terms of Service
-          </Link>
+          </a>
         </div>
       </div>
     </footer>

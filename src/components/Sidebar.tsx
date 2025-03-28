@@ -14,9 +14,6 @@ const Sidebar: React.FC<SidebarProps> = ({ collapsed, setCollapsed }) => {
   const router = useRouter();
   const [isMobile, setIsMobile] = useState(false);
 
-  // Placeholder for potential pathname-based logic
-  // const pathname = usePathname(); // ← Uncomment if/when needed
-
   const handleLogout = async () => {
     await supabase.auth.signOut();
     router.push("/login");
