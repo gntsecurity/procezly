@@ -11,9 +11,11 @@ import {
   AlertTriangle,
   CheckCircle,
   FileText,
-  BarChart2,
-  X
 } from 'lucide-react'
+
+import StatCard from '../../components/dashboard/StatCard'
+import SubmissionChart from '../../components/dashboard/SubmissionChart'
+import AuditLogModal from '../../components/dashboard/AuditLogModal'
 
 const Dashboard = () => {
   const [dashboardData, setDashboardData] = useState({
@@ -113,7 +115,7 @@ const Dashboard = () => {
   if (!isAuthenticated) return <div>Loading...</div>
 
   return (
-    <div className="px-4 pt-4 sm:px-6 sm:pt-6 w-full max-w-7xl mx-auto">
+    <div className="px-4 pt-4 sm:px-6 sm:pt-6 lg:px-12 w-full max-w-7xl mx-auto">
       <h1 className="text-xl sm:text-3xl font-semibold text-gray-900">
         Hey {userName}, welcome back 👋
       </h1>
@@ -152,9 +154,7 @@ const Dashboard = () => {
 
       {dashboardData.recentActions.length > 0 && (
         <div className="mt-8">
-          <h2 className="text-sm font-medium text-gray-700 mb-2">
-            Recent Activity
-          </h2>
+          <h2 className="text-sm font-medium text-gray-700 mb-2">Recent Activity</h2>
           <ul className="text-sm text-gray-600 space-y-1">
             {dashboardData.recentActions.map((log, i) => (
               <li key={i}>
@@ -168,64 +168,11 @@ const Dashboard = () => {
         </div>
       )}
 
-      {/* Chart block */}
       <div className="mt-10 hidden xl:block">
-        <div className="bg-white border rounded-lg p-5 shadow-sm w-full max-w-lg">
-          <div className="flex items-center gap-4 mb-4">
-            <BarChart2 className="text-purple-600" size={28} />
-            <div>
-              <div className="text-gray-500 text-sm">Submissions This Week</div>
-            </div>
-          </div>
-
-          <svg width="100%" height="80" viewBox="0 0 210 80" className="text-purple-400">
-            {chartData.map((val, idx) => (
-              <rect
-                key={idx}
-                x={idx * 30}
-                y={80 - val * 8}
-                width="20"
-                height={val * 8}
-                rx="3"
-                className="fill-current"
-              />
-            ))}
-          </svg>
-
-          <div className="text-xs text-gray-500 mt-2 flex justify-between">
-            {['S', 'M', 'T', 'W', 'T', 'F', 'S'].map((d, i) => (
-              <span key={i} className="w-[30px] text-center">
-                {d}
-              </span>
-            ))}
-          </div>
-        </div>
+        <SubmissionChart data={chartData} />
       </div>
 
-      {/* Modal */}
-      {modalOpen && (
-        <div className="fixed inset-0 z-50 bg-black/40 flex items-center justify-center px-4">
-          <div className="bg-white rounded-lg w-full max-w-2xl p-6 relative max-h-[80vh] overflow-y-auto">
-            <button
-              onClick={() => setModalOpen(false)}
-              className="absolute top-3 right-3 text-gray-400 hover:text-gray-600"
-            >
-              <X size={20} />
-            </button>
-            <h2 className="text-lg font-semibold mb-4">Recent Audit Logs</h2>
-            <ul className="text-sm text-gray-800 space-y-2">
-              {logHistory.map((log, idx) => (
-                <li key={idx} className="border-b pb-2">
-                  <div>{log.action}</div>
-                  <div className="text-xs text-gray-500">
-                    {new Date(log.timestamp).toLocaleString()}
-                  </div>
-                </li>
-              ))}
-            </ul>
-          </div>
-        </div>
-      )}
+      {modalOpen && <AuditLogModal logs={logHistory} onClose={() => setModalOpen(false)} />}
 
       <div className="hidden">
         <AlertTriangle />
@@ -233,33 +180,6 @@ const Dashboard = () => {
         <FileText />
       </div>
     </div>
-  )
-}
-
-const StatCard = ({
-  icon,
-  title,
-  value,
-  onClick,
-}: {
-  icon: React.ReactNode
-  title: string
-  value: string | number
-  onClick: () => void
-}) => {
-  return (
-    <button
-      onClick={onClick}
-      className="w-full text-left bg-white px-4 py-3 sm:p-6 rounded-lg shadow-sm flex items-center space-x-4 border border-gray-200 hover:shadow-md hover:scale-[1.01] transition"
-    >
-      <div className="p-2 sm:p-3 bg-gray-100 rounded-full">{icon}</div>
-      <div className="flex flex-col justify-center">
-        <p className="text-xs sm:text-sm text-gray-600">{title}</p>
-        <p className="text-base sm:text-xl font-semibold text-gray-900">
-          {value}
-        </p>
-      </div>
-    </button>
   )
 }
 
