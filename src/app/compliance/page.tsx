@@ -1,109 +1,88 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { supabase } from "../../utils/supabaseClient";
-import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
+import Link from "next/link";
+import { ShieldCheck, ClipboardList, Users, FileCheck2, Timer } from "lucide-react";
 
-interface Submission {
-  id: string;
-  card_id: string;
-  status: string;
-  submitted_at: string;
-}
-
-interface Card {
-  id: string;
-  uid: string;
-}
-
-const CompliancePage = () => {
-  const [submissions, setSubmissions] = useState<Submission[]>([]);
-  const [cards, setCards] = useState<Card[]>([]);
-  const [orgId, setOrgId] = useState<string | null>(null);
-
-  useEffect(() => {
-    const init = async () => {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      if (!user?.id) return;
-
-      const { data: roleData } = await supabase
-        .from("roles")
-        .select("organization_id")
-        .eq("user_id", user.id)
-        .single();
-
-      if (!roleData) return;
-      setOrgId(roleData.organization_id);
-
-      const [{ data: sub }, { data: cardData }] = await Promise.all([
-        supabase
-          .from("submissions")
-          .select("id, card_id, status, submitted_at")
-          .eq("organization_id", roleData.organization_id),
-        supabase
-          .from("kamishibai_cards")
-          .select("id, uid")
-          .eq("organization_id", roleData.organization_id),
-      ]);
-
-      setSubmissions(sub || []);
-      setCards(cardData || []);
-    };
-
-    init();
-  }, []);
-
-  const total = submissions.length;
-  const passed = submissions.filter((s) => s.status === "Passed").length;
-  const failed = submissions.filter((s) => s.status === "Failed").length;
-  const attention = submissions.filter((s) => s.status === "Needs Attention").length;
-
-  const score = total > 0 ? Math.round((passed / total) * 100) : 0;
-
-  const cardMap = Object.fromEntries(cards.map((c) => [c.id, c.uid]));
-
-  const groupedByCard = submissions.reduce((acc: Record<string, any>, sub) => {
-    const name = cardMap[sub.card_id] || "Unknown";
-    if (!acc[name]) acc[name] = { name, Passed: 0, Failed: 0, "Needs Attention": 0 };
-    acc[name][sub.status] += 1;
-    return acc;
-  }, {});
-  const chartData = Object.values(groupedByCard);
-
+export default function CompliancePage() {
   return (
-    <div className="px-4 pt-6 sm:px-6 w-full max-w-5xl mx-auto">
-      <h1 className="text-2xl font-semibold text-gray-900 mb-6">Compliance Overview</h1>
+    <div className="px-4 pt-6 sm:px-6 w-full max-w-3xl mx-auto">
+      <h1 className="text-3xl font-bold text-gray-900 mb-4">Compliance & Auditing</h1>
 
-      <div className="grid sm:grid-cols-3 gap-4 mb-6">
-        <StatCard label="Overall Score" value={`${score}%`} />
-        <StatCard label="Total Submissions" value={total.toString()} />
-        <StatCard label="Passed / Failed / Needs Attention" value={`${passed} / ${failed} / ${attention}`} />
-      </div>
+      <section className="mb-6">
+        <h2 className="text-xl font-semibold text-gray-800 mb-2">Why Compliance Matters</h2>
+        <p className="text-gray-700 leading-relaxed">
+          Compliance reduces risk and ensures your organization meets internal standards and
+          external regulations. Whether pursuing ISO certification or internal accountability,
+          it's the foundation of operational trust.
+        </p>
+      </section>
 
-      <div className="bg-white border border-gray-200 rounded-lg p-4">
-        <h2 className="text-lg font-medium text-gray-800 mb-4">Submissions by Card</h2>
-        <ResponsiveContainer width="100%" height={300}>
-          <BarChart data={chartData}>
-            <XAxis dataKey="name" />
-            <YAxis />
-            <Tooltip />
-            <Bar dataKey="Passed" stackId="a" />
-            <Bar dataKey="Failed" stackId="a" />
-            <Bar dataKey="Needs Attention" stackId="a" />
-          </BarChart>
-        </ResponsiveContainer>
+      <section className="mb-6">
+        <h2 className="text-xl font-semibold text-gray-800 mb-2">Kamishibai Auditing</h2>
+        <p className="text-gray-700">
+          A lean auditing method developed at Toyota, Kamishibai ensures recurring visual
+          audits using rotating cards. It embeds quality and accountability directly into your
+          daily operations.
+        </p>
+        <ul className="list-disc list-inside text-gray-700 mt-2">
+          <li>Rotating card-based checks</li>
+          <li>Cross-functional accountability</li>
+          <li>Actionable, fast feedback loops</li>
+        </ul>
+      </section>
+
+      <section className="mb-6">
+        <h2 className="text-xl font-semibold text-gray-800 mb-2">ISO Alignment</h2>
+        <div className="flex flex-wrap gap-3 mt-2">
+          <Badge label="ISO 9001" href="https://www.iso.org/iso-9001-quality-management.html" />
+          <Badge label="ISO 27001" href="https://www.iso.org/isoiec-27001-information-security.html" />
+          <Badge label="ISO 45001" href="https://www.iso.org/iso-45001-occupational-health-and-safety.html" />
+        </div>
+      </section>
+
+      <section className="mb-8">
+        <h2 className="text-xl font-semibold text-gray-800 mb-4">Audit Lifecycle</h2>
+        <div className="space-y-4">
+          <TimelineItem icon={<ClipboardList />} title="Create Audit Cards" />
+          <TimelineItem icon={<Users />} title="Assign Responsibility" />
+          <TimelineItem icon={<Timer />} title="Run Scheduled Audits" />
+          <TimelineItem icon={<FileCheck2 />} title="Submit & Review" />
+          <TimelineItem icon={<ShieldCheck />} title="Prove Compliance" />
+        </div>
+      </section>
+
+      <div className="bg-blue-50 border border-blue-200 p-4 rounded-lg text-blue-800">
+        <p className="font-medium">Ready to take control of your audits?</p>
+        <p>
+          Use the{" "}
+          <Link href="/scheduler" className="underline font-semibold">
+            Audit Scheduler
+          </Link>{" "}
+          to visually manage your Kamishibai board.
+        </p>
       </div>
     </div>
   );
-};
+}
 
-const StatCard = ({ label, value }: { label: string; value: string }) => (
-  <div className="bg-white border border-gray-200 rounded-lg p-4">
-    <div className="text-gray-500 text-sm">{label}</div>
-    <div className="text-xl font-semibold text-gray-800">{value}</div>
-  </div>
-);
+function Badge({ label, href }: { label: string; href: string }) {
+  return (
+    <Link
+      href={href}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="px-3 py-1 rounded-full bg-gray-100 border text-sm font-medium text-gray-800 hover:bg-gray-200"
+    >
+      {label}
+    </Link>
+  );
+}
 
-export default CompliancePage;
+function TimelineItem({ icon, title }: { icon: React.ReactNode; title: string }) {
+  return (
+    <div className="flex items-center space-x-3">
+      <div className="bg-blue-100 text-blue-700 rounded-full p-2">{icon}</div>
+      <span className="text-gray-800 font-medium">{title}</span>
+    </div>
+  );
+}
