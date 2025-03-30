@@ -20,8 +20,8 @@ interface Card {
   uid: string;
 }
 
-interface DBUser {
-  id: string;
+interface OrgUser {
+  user_id: string;
   display_name: string;
 }
 
@@ -30,7 +30,7 @@ const SubmissionsPage = () => {
   const [orgId, setOrgId] = useState<string | null>(null);
   const [userId, setUserId] = useState<string | null>(null);
   const [cards, setCards] = useState<Card[]>([]);
-  const [users, setUsers] = useState<DBUser[]>([]);
+  const [users, setUsers] = useState<OrgUser[]>([]);
   const [submissions, setSubmissions] = useState<Submission[]>([]);
   const [form, setForm] = useState({ card_id: "", status: "", notes: "" });
   const [loading, setLoading] = useState(true);
@@ -54,9 +54,9 @@ const SubmissionsPage = () => {
       setIsAdmin(roleData.role === "admin");
       setOrgId(roleData.organization_id);
 
-      const [{ data: cardData }, { data: userViewData }, { data: submissionData }] = await Promise.all([
+      const [{ data: cardData }, { data: orgUserData }, { data: submissionData }] = await Promise.all([
         supabase.from("kamishibai_cards").select("id, uid").eq("organization_id", roleData.organization_id),
-        supabase.from("users_view").select("id, display_name"),
+        supabase.from("org_users").select("user_id, display_name").eq("organization_id", roleData.organization_id),
         supabase
           .from("submissions")
           .select("*")
@@ -65,7 +65,7 @@ const SubmissionsPage = () => {
       ]);
 
       const cardMap = Object.fromEntries((cardData || []).map((c) => [c.id, c.uid]));
-      const userMap = Object.fromEntries((userViewData || []).map((u) => [u.id, u.display_name]));
+      const userMap = Object.fromEntries((orgUserData || []).map((u) => [u.user_id, u.display_name]));
 
       const withMeta = (submissionData || []).map((s) => ({
         ...s,
@@ -74,7 +74,7 @@ const SubmissionsPage = () => {
       }));
 
       setCards(cardData || []);
-      setUsers(userViewData || []);
+      setUsers(orgUserData || []);
       setSubmissions(isAdmin ? withMeta : withMeta.filter((s) => s.user_id === uid));
       setLoading(false);
     };
@@ -102,7 +102,7 @@ const SubmissionsPage = () => {
       .order("submitted_at", { ascending: false });
 
     const cardMap = Object.fromEntries(cards.map((c) => [c.id, c.uid]));
-    const userMap = Object.fromEntries(users.map((u) => [u.id, u.display_name]));
+    const userMap = Object.fromEntries(users.map((u) => [u.user_id, u.display_name]));
 
     const withMeta = (updated || []).map((s) => ({
       ...s,
