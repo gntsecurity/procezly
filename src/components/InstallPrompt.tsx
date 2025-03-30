@@ -1,58 +1,62 @@
+
+"use client";
+
 import { useEffect, useState } from "react";
 
-function isStandalone() {
-  return window.matchMedia("(display-mode: standalone)").matches || (window.navigator as any).standalone === true;
+declare global {
+  interface WindowEventMap {
+    beforeinstallprompt: BeforeInstallPromptEvent;
+  }
+}
+
+interface BeforeInstallPromptEvent extends Event {
+  prompt: () => Promise<void>;
+  userChoice: Promise<{ outcome: "accepted" | "dismissed"; platform: string }>;
 }
 
 export default function InstallPrompt() {
-  const [deferred, setDeferred] = useState<any>(null);
-  const [show, setShow] = useState(false);
-  const [isIOS, setIsIOS] = useState(false);
+  const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
+  const [showPrompt, setShowPrompt] = useState(false);
 
   useEffect(() => {
-    const iOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
-    const standalone = isStandalone();
-
-    setIsIOS(iOS);
-
-    if (standalone) return;
-
-    if (iOS) {
-      setShow(true);
-    }
-
-    const handleBeforeInstall = (e: any) => {
+    const handler = (e: Event) => {
       e.preventDefault();
-      setDeferred(e);
-      setShow(true);
+      setDeferredPrompt(e as BeforeInstallPromptEvent);
+      setShowPrompt(true);
     };
 
-    window.addEventListener("beforeinstallprompt", handleBeforeInstall);
-    return () => window.removeEventListener("beforeinstallprompt", handleBeforeInstall);
+    window.addEventListener("beforeinstallprompt", handler);
+
+    return () => {
+      window.removeEventListener("beforeinstallprompt", handler);
+    };
   }, []);
 
-  const triggerInstall = async () => {
-    if (!deferred) return;
-    deferred.prompt();
-    const res = await deferred.userChoice;
-    if (res.outcome === "accepted") setShow(false);
+  const handleInstallClick = async (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.preventDefault();
+    if (!deferredPrompt) return;
+    deferredPrompt.prompt();
+    const choiceResult = await deferredPrompt.userChoice;
+    if (choiceResult.outcome === "accepted") {
+      console.log("User accepted the A2HS prompt");
+    } else {
+      console.log("User dismissed the A2HS prompt");
+    }
+    setDeferredPrompt(null);
+    setShowPrompt(false);
   };
 
-  if (!show) return null;
+  if (!showPrompt) return null;
 
   return (
-    <div className="fixed bottom-6 left-4 right-4 z-50 rounded-2xl border border-gray-200 bg-white shadow-lg p-4 flex items-center justify-between backdrop-blur-md">
-      <span className="text-sm font-medium text-gray-900">
-        {isIOS ? "Tap Share → Add to Home Screen" : "Install GNT Security to Home Screen"}
-      </span>
-      {!isIOS && (
-        <button
-          onClick={triggerInstall}
-          className="ml-4 px-4 py-2 text-sm font-semibold rounded-xl bg-blue-600 text-white hover:bg-blue-700 transition"
-        >
-          Add
-        </button>
-      )}
+    <div className="fixed bottom-4 right-4 p-4 bg-white shadow-lg rounded-lg z-50">
+      <p className="mb-2">Install this app for a better experience.</p>
+      <button
+        onClick={handleInstallClick}
+        className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition"
+      >
+        Install
+      </button>
     </div>
   );
 }
