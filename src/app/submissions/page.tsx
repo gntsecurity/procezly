@@ -1,143 +1,102 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { createClientComponentClient } from '../../utils/supabase/client'
-import { Input } from '../../components/ui/input'
-import { Button } from '../../components/ui/button'
-import {
-  Select,
-  SelectTrigger,
-  SelectValue,
-  SelectContent,
-  SelectItem,
-} from '../../components/ui/select'
+import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
+import type { Database } from '../../../types/supabase'
 
-type Submission = {
-  id: string
-  user_id: string
-  card_id: string
-  status: string
-  notes: string
-  created_at: string
-}
-
-type Card = {
-  id: string
-  uid: string
-}
+type Submission = Database['public']['Tables']['submissions']['Row']
+type Card = Database['public']['Tables']['kamishibai_cards']['Row']
 
 export default function SubmissionsPage() {
-  const supabase = createClientComponentClient()
-  const [submissions, setSubmissions] = useState<Submission[]>([])
+  const supabase = createClientComponentClient<Database>()
   const [cards, setCards] = useState<Card[]>([])
-  const [users, setUsers] = useState<Record<string, string>>({})
+  const [submissions, setSubmissions] = useState<Submission[]>([])
+  const [displayNames, setDisplayNames] = useState<Record<string, string>>({})
   const [selectedCard, setSelectedCard] = useState('')
-  const [selectedStatus, setSelectedStatus] = useState('')
+  const [status, setStatus] = useState('')
   const [notes, setNotes] = useState('')
-  const [uid, setUid] = useState('')
-  const [isAdmin, setIsAdmin] = useState(false)
+
+  const fetchData = async () => {
+    const { data: cardData } = await supabase.from('kamishibai_cards').select('*')
+    const { data: submissionData } = await supabase.from('submissions').select('*').order('created_at', { ascending: false })
+
+    const userIds = [...new Set((submissionData ?? []).map((s) => s.user_id).filter(Boolean))] as string[]
+    const { data: userData } = await supabase
+      .from('users_view')
+      .select('id, display_name')
+      .in('id', userIds)
+
+    const nameMap = Object.fromEntries((userData ?? []).map((u) => [u.id, u.display_name || 'Unknown']))
+
+    setCards(cardData || [])
+    setSubmissions(submissionData || [])
+    setDisplayNames(nameMap)
+  }
 
   useEffect(() => {
-    const fetchData = async () => {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser()
-
-      if (!user) return
-
-      setUid(user.id)
-
-      const { data: roleData } = await supabase
-        .from('roles')
-        .select('role')
-        .eq('user_id', user.id)
-        .single()
-
-      setIsAdmin(roleData?.role === 'admin')
-
-      const { data: cardData } = await supabase
-        .from('kamishibai_cards')
-        .select('id, uid')
-
-      const { data: submissionData } = await supabase
-        .from('submissions')
-        .select('*')
-
-      const { data: authData } = await supabase.auth.admin.listUsers()
-      const userMap = Object.fromEntries(
-        authData.users.map((u) => [
-          u.id,
-          u.user_metadata?.display_name || 'Unknown',
-        ])
-      )
-
-      const filtered = isAdmin
-        ? submissionData || []
-        : (submissionData || []).filter((s) => s.user_id === user.id)
-
-      setCards(cardData || [])
-      setUsers(userMap)
-      setSubmissions(filtered)
-    }
-
     fetchData()
-  }, [supabase, uid, isAdmin])
+  }, [])
 
   const handleSubmit = async () => {
-    if (!selectedCard || !selectedStatus) return
+    if (!selectedCard || !status || !notes) return
 
     await supabase.from('submissions').insert({
-      user_id: uid,
       card_id: selectedCard,
-      status: selectedStatus,
+      status,
       notes,
     })
 
-    location.reload()
+    await fetchData()
+    setSelectedCard('')
+    setStatus('')
+    setNotes('')
   }
 
-  const cardMap = Object.fromEntries(cards.map((c) => [c.id, c.uid]))
-
   return (
-    <div className="p-6">
+    <div className="p-4">
       <h1 className="text-lg font-bold mb-4">Submissions</h1>
+
       <div className="flex gap-2 mb-4">
-        <Select onValueChange={setSelectedCard}>
-          <SelectTrigger className="w-[200px]">
-            <SelectValue placeholder="Select Card" />
-          </SelectTrigger>
-          <SelectContent>
-            {cards.map((card) => (
-              <SelectItem key={card.id} value={card.id}>
-                {card.uid}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+        <select
+          className="border rounded p-2"
+          value={selectedCard}
+          onChange={(e) => setSelectedCard(e.target.value)}
+        >
+          <option value="">Select Card</option>
+          {cards.map((card) => (
+            <option key={card.id} value={card.id}>{card.uid}</option>
+          ))}
+        </select>
 
-        <Select onValueChange={setSelectedStatus}>
-          <SelectTrigger className="w-[200px]">
-            <SelectValue placeholder="Select Status" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="Passed">Passed</SelectItem>
-            <SelectItem value="Failed">Failed</SelectItem>
-          </SelectContent>
-        </Select>
+        <select
+          className="border rounded p-2"
+          value={status}
+          onChange={(e) => setStatus(e.target.value)}
+        >
+          <option value="">Select Status</option>
+          <option value="passed">Passed</option>
+          <option value="failed">Failed</option>
+        </select>
 
-        <Input
+        <input
+          className="border rounded p-2 flex-1"
+          type="text"
           placeholder="Notes"
-          className="w-[300px]"
           value={notes}
           onChange={(e) => setNotes(e.target.value)}
         />
 
-        <Button onClick={handleSubmit}>Submit</Button>
+        <button
+          onClick={handleSubmit}
+          className="bg-blue-600 text-white rounded px-4 py-2"
+        >
+          Submit
+        </button>
       </div>
 
-      <table className="w-full text-left text-sm border">
+      <table className="w-full text-sm border">
         <thead>
-          <tr className="border-b">
+          <tr className="bg-gray-100 text-left">
             <th className="p-2">Card UID</th>
             <th className="p-2">Status</th>
             <th className="p-2">Notes</th>
@@ -147,14 +106,12 @@ export default function SubmissionsPage() {
         </thead>
         <tbody>
           {submissions.map((s) => (
-            <tr key={s.id} className="border-b">
-              <td className="p-2">{cardMap[s.card_id]}</td>
-              <td className="p-2">{s.status}</td>
+            <tr key={s.id} className="border-t">
+              <td className="p-2">{cards.find(c => c.id === s.card_id)?.uid || 'Unknown'}</td>
+              <td className="p-2 capitalize">{s.status}</td>
               <td className="p-2">{s.notes}</td>
-              <td className="p-2">{users[s.user_id] || 'Unknown'}</td>
-              <td className="p-2">
-                {new Date(s.created_at).toLocaleString()}
-              </td>
+              <td className="p-2">{displayNames[s.user_id || ''] || 'Unknown'}</td>
+              <td className="p-2">{new Date(s.created_at).toLocaleString()}</td>
             </tr>
           ))}
         </tbody>
