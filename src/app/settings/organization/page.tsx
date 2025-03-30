@@ -3,111 +3,111 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { supabase } from '../../../utils/supabaseClient';
-import { createClient } from '@supabase/supabase-js';
 
-type RoleEntry = {
+type Org = {
   id: string;
-  user_id: string;
+  created_at: string;
+};
+
+type User = {
+  id: string;
+  email: string;
   role: string;
 };
 
-type AuditLogEntry = {
+type AuditLog = {
   id: string;
   action: string;
   timestamp: string;
-  context: Record<string, unknown>;
 };
 
 export default function OrganizationSettings() {
-  const [organizationId, setOrganizationId] = useState<string>('');
-  const [createdAt, setCreatedAt] = useState<string>('');
-  const [users, setUsers] = useState<any[]>([]);
-  const [auditLogs, setAuditLogs] = useState<AuditLogEntry[]>([]);
-  const [cardCount, setCardCount] = useState<number>(0);
-  const [submissionCount, setSubmissionCount] = useState<number>(0);
-  const [updating, setUpdating] = useState(false);
+  const [org, setOrg] = useState<Org | null>(null);
+  const [users, setUsers] = useState<User[]>([]);
+  const [logs, setLogs] = useState<AuditLog[]>([]);
+  const [stats, setStats] = useState({ cards: 0, submissions: 0 });
+  const [email, setEmail] = useState('');
+  const [updatingId, setUpdatingId] = useState<string | null>(null);
 
   useEffect(() => {
-    const fetchData = async () => {
-      const {
-        data: {
-          session,
-        },
-      } = await supabase.auth.getSession();
+    const load = async () => {
+      const { data: session } = await supabase.auth.getSession();
+      const userId = session?.session?.user.id;
+      if (!userId) return;
 
-      const user = session?.user;
-      if (!user) return;
-
-      const { data: roles } = await supabase
+      const { data: role } = await supabase
         .from('roles')
         .select('organization_id')
-        .eq('user_id', user.id)
+        .eq('user_id', userId)
         .eq('role', 'admin')
         .single();
 
-      if (!roles) return;
+      const orgId = role?.organization_id;
+      if (!orgId) return;
 
-      const orgId = roles.organization_id;
-      setOrganizationId(orgId);
-
-      const { data: orgData } = await supabase
+      const { data: org } = await supabase
         .from('organizations')
-        .select('created_at')
+        .select('id, created_at')
         .eq('id', orgId)
         .single();
 
-      if (orgData) setCreatedAt(orgData.created_at);
+      setOrg(org);
 
-      const { data: userList } = await supabase
-        .from('users_view')
-        .select('*')
+      const { data: roleRows } = await supabase
+        .from('roles')
+        .select('id, user_id, role')
         .eq('organization_id', orgId);
 
-      setUsers(userList || []);
+      const userIds = roleRows?.map(r => r.user_id) || [];
 
-      const { data: logs } = await supabase
+      const { data: userRows } = await supabase
+        .from('users_view')
+        .select('id, email')
+        .in('id', userIds);
+
+      const mergedUsers = roleRows?.map(role => ({
+        id: role.id,
+        user_id: role.user_id,
+        role: role.role,
+        email: userRows?.find(u => u.id === role.user_id)?.email || '',
+      })) ?? [];
+
+      setUsers(mergedUsers);
+
+      const { data: audit } = await supabase
         .from('audit_logs')
-        .select('id, action, timestamp, context')
+        .select('id, action, timestamp')
         .eq('organization_id', orgId)
         .order('timestamp', { ascending: false })
         .limit(5);
 
-      setAuditLogs(logs || []);
+      setLogs(audit || []);
 
       const { count: cardCount } = await supabase
         .from('kamishibai_cards')
         .select('*', { count: 'exact', head: true })
         .eq('organization_id', orgId);
 
-      setCardCount(cardCount || 0);
-
       const { count: submissionCount } = await supabase
         .from('submissions')
         .select('*', { count: 'exact', head: true })
         .eq('organization_id', orgId);
 
-      setSubmissionCount(submissionCount || 0);
+      setStats({
+        cards: cardCount || 0,
+        submissions: submissionCount || 0,
+      });
     };
 
-    fetchData();
+    load();
   }, []);
 
-  const handleRoleChange = async (id: string, newRole: string) => {
-    setUpdating(true);
+  const toggleRole = async (id: string, current: string) => {
+    const newRole = current === 'admin' ? 'user' : 'admin';
+    setUpdatingId(id);
     await supabase.from('roles').update({ role: newRole }).eq('id', id);
-    const updatedUsers = users.map((user) =>
-      user.id === id ? { ...user, role: newRole } : user
-    );
-    setUsers(updatedUsers);
-    setUpdating(false);
-  };
-
-  const handleAddUser = async (email: string) => {
-    const response = await fetch('/functions/api/subscribe', {
-      method: 'POST',
-      body: JSON.stringify({ email }),
-    });
-    await response.json();
+    setUsers(users.map(u => (u.id === id ? { ...u, role: newRole } : u)));
+    setUpdatingId(null);
   };
 
   return (
@@ -117,59 +117,34 @@ export default function OrganizationSettings() {
       </Link>
       <h2 className="text-2xl font-bold mt-4">Organization Settings</h2>
 
-      <div className="mt-6">
-        <p className="text-sm">Organization ID:</p>
-        <p className="font-mono text-blue-600 break-all">{organizationId}</p>
-        <p className="mt-2 text-sm text-gray-500">
-          Created: {createdAt ? new Date(createdAt).toLocaleString() : '...'}
-        </p>
-        <p className="mt-2">Kamishibai Cards: {cardCount}</p>
-        <p className="mt-1">Submissions: {submissionCount}</p>
-      </div>
-
-      <div className="mt-6">
-        <h3 className="font-semibold mb-2">Invite User</h3>
-        <form
-          className="flex gap-2"
-          onSubmit={(e) => {
-            e.preventDefault();
-            const email = (e.target as any).email.value;
-            if (email) handleAddUser(email);
-          }}
-        >
-          <input
-            name="email"
-            placeholder="user@example.com"
-            className="border px-2 py-1 text-sm rounded w-full"
-            required
-          />
-          <button
-            type="submit"
-            className="bg-blue-600 text-white px-3 py-1 rounded text-sm"
-          >
-            Add
-          </button>
-        </form>
-      </div>
+      {org && (
+        <div className="mt-4 text-sm space-y-1">
+          <div><strong>Organization ID:</strong> {org.id}</div>
+          <div><strong>Created:</strong> {new Date(org.created_at).toLocaleString()}</div>
+          <div><strong>Kamishibai Cards:</strong> {stats.cards}</div>
+          <div><strong>Submissions:</strong> {stats.submissions}</div>
+        </div>
+      )}
 
       <div className="mt-6">
         <h3 className="font-semibold mb-2">Users</h3>
         <ul className="space-y-2">
-          {users.map((user) => (
-            <li key={user.id} className="flex justify-between items-center border p-2 rounded">
+          {users.map(u => (
+            <li
+              key={u.id}
+              className="flex justify-between items-center border p-2 rounded"
+            >
               <div>
-                <p className="text-sm font-medium">{user.email}</p>
-                <p className="text-xs text-gray-500">{user.role}</p>
+                <p className="text-sm font-medium">{u.email}</p>
+                <p className="text-xs text-gray-500 capitalize">{u.role}</p>
               </div>
-              <select
-                disabled={updating}
-                value={user.role}
-                onChange={(e) => handleRoleChange(user.id, e.target.value)}
-                className="text-sm border rounded px-2 py-1"
+              <button
+                onClick={() => toggleRole(u.id, u.role)}
+                disabled={updatingId === u.id}
+                className="text-sm text-blue-600 underline"
               >
-                <option value="user">User</option>
-                <option value="admin">Admin</option>
-              </select>
+                Make {u.role === 'admin' ? 'User' : 'Admin'}
+              </button>
             </li>
           ))}
         </ul>
@@ -178,7 +153,7 @@ export default function OrganizationSettings() {
       <div className="mt-6">
         <h3 className="font-semibold mb-2">Audit Log (Last 5)</h3>
         <ul className="text-sm space-y-1">
-          {auditLogs.map((log) => (
+          {logs.map((log) => (
             <li key={log.id} className="border p-2 rounded">
               <p>{log.action}</p>
               <p className="text-xs text-gray-500">
