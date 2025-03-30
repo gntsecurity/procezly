@@ -151,23 +151,6 @@ const Dashboard = () => {
           />
         )}
       </div>
-
-      {dashboardData.recentActions.length > 0 && (
-        <div className="mt-8">
-          <h2 className="text-sm font-medium text-gray-700 mb-2">Recent Activity</h2>
-          <ul className="text-sm text-gray-600 space-y-1">
-            {dashboardData.recentActions.map((log, i) => (
-              <li key={i}>
-                {log.action} –{' '}
-                <span className="text-gray-400 text-xs">
-                  {new Date(log.timestamp).toLocaleString()}
-                </span>
-              </li>
-            ))}
-          </ul>
-        </div>
-      )}
-
       <div className="mt-10 hidden xl:block">
         <SubmissionChart data={chartData} />
       </div>
