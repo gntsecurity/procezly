@@ -1,17 +1,19 @@
-"use client";
+'use client'
 
-import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
-import { supabase } from "../../utils/supabaseClient";
+import { useEffect, useState } from 'react'
+import { useRouter } from 'next/navigation'
+import { supabase } from '../../utils/supabaseClient'
 import {
   ClipboardList,
   ShieldCheck,
   Users,
+  Clock,
   AlertTriangle,
   CheckCircle,
-  Clock,
   FileText,
-} from "lucide-react";
+  BarChart2,
+  X
+} from 'lucide-react'
 
 const Dashboard = () => {
   const [dashboardData, setDashboardData] = useState({
@@ -19,57 +21,74 @@ const Dashboard = () => {
     activeUsers: 0,
     complianceScore: 0,
     recentActions: [] as { action: string; timestamp: string }[],
-    role: "",
-  });
+    role: '',
+  })
 
-  const [userName, setUserName] = useState("");
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const router = useRouter();
+  const [userName, setUserName] = useState('')
+  const [isAuthenticated, setIsAuthenticated] = useState(false)
+  const [modalOpen, setModalOpen] = useState(false)
+  const [logHistory, setLogHistory] = useState<
+    { action: string; timestamp: string }[]
+  >([])
+
+  const router = useRouter()
 
   useEffect(() => {
     const checkAuth = async () => {
-      const { data: session } = await supabase.auth.getSession();
+      const { data: session } = await supabase.auth.getSession()
       if (!session?.session) {
-        window.location.href = "/login";
-        return;
+        window.location.href = '/login'
+        return
       }
-      setIsAuthenticated(true);
-    };
+      setIsAuthenticated(true)
+    }
 
     const fetchData = async () => {
-      const { data: user, error: userError } = await supabase.auth.getUser();
-      if (userError || !user?.user?.id) return;
+      const { data: user, error: userError } = await supabase.auth.getUser()
+      if (userError || !user?.user?.id) return
 
-      setUserName(user.user.email?.split("@")[0] || "there");
+      const fullName = user.user.user_metadata?.full_name
+      setUserName(fullName || user.user.email?.split('@')[0] || 'there')
 
       const { data: roleData } = await supabase
-        .from("roles")
-        .select("organization_id, role")
-        .eq("user_id", user.user.id)
-        .single();
+        .from('roles')
+        .select('organization_id, role')
+        .eq('user_id', user.user.id)
+        .single()
 
-      if (!roleData) return;
+      if (!roleData) return
+
+      const orgId = roleData.organization_id
 
       const [cards, users, submissions, logs] = await Promise.all([
         supabase
-          .from("kamishibai_cards")
-          .select("*")
-          .eq("organization_id", roleData.organization_id),
+          .from('kamishibai_cards')
+          .select('*')
+          .eq('organization_id', orgId),
         supabase
-          .from("roles")
-          .select("user_id")
-          .eq("organization_id", roleData.organization_id),
+          .from('roles')
+          .select('user_id')
+          .eq('organization_id', orgId),
         supabase
-          .from("submissions")
-          .select("id")
-          .eq("organization_id", roleData.organization_id),
+          .from('submissions')
+          .select('id')
+          .eq('organization_id', orgId),
         supabase
-          .from("audit_logs")
-          .select("action, timestamp")
-          .eq("organization_id", roleData.organization_id)
-          .order("timestamp", { ascending: false })
+          .from('audit_logs')
+          .select('action, timestamp')
+          .eq('organization_id', orgId)
+          .order('timestamp', { ascending: false })
           .limit(5),
-      ]);
+      ])
+
+      const fullLogs = await supabase
+        .from('audit_logs')
+        .select('action, timestamp')
+        .eq('organization_id', orgId)
+        .order('timestamp', { ascending: false })
+        .limit(50)
+
+      setLogHistory(fullLogs.data || [])
 
       setDashboardData({
         totalCards: cards.data?.length || 0,
@@ -78,17 +97,17 @@ const Dashboard = () => {
           ? Math.min(100, submissions.data.length * 3)
           : 0,
         recentActions: logs.data || [],
-        role: roleData.role || "",
-      });
-    };
+        role: roleData.role || '',
+      })
+    }
 
-    checkAuth();
-    fetchData();
-    const interval = setInterval(fetchData, 120000);
-    return () => clearInterval(interval);
-  }, []);
+    checkAuth()
+    fetchData()
+    const interval = setInterval(fetchData, 120000)
+    return () => clearInterval(interval)
+  }, [])
 
-  if (!isAuthenticated) return <div>Loading...</div>;
+  if (!isAuthenticated) return <div>Loading...</div>
 
   return (
     <div className="px-4 pt-4 sm:px-6 sm:pt-6 w-full max-w-7xl mx-auto">
@@ -96,7 +115,7 @@ const Dashboard = () => {
         Hey {userName}, welcome back 👋
       </h1>
       <p className="text-gray-600 text-sm sm:text-base mt-1">
-        Your team is making progress! Here&apos;s the latest snapshot.
+        Your team is making progress! Here's the latest snapshot.
       </p>
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 sm:gap-6 mt-6">
@@ -104,26 +123,26 @@ const Dashboard = () => {
           icon={<ClipboardList size={24} />}
           title="Kamishibai Cards"
           value={dashboardData.totalCards}
-          onClick={() => router.push("/kamishibai")}
+          onClick={() => router.push('/kamishibai')}
         />
         <StatCard
           icon={<Users size={24} className="text-indigo-600" />}
           title="Active Users"
           value={dashboardData.activeUsers}
-          onClick={() => router.push("/settings")}
+          onClick={() => router.push('/settings')}
         />
         <StatCard
           icon={<ShieldCheck size={24} className="text-blue-600" />}
           title="Compliance Score"
           value={`${dashboardData.complianceScore}%`}
-          onClick={() => router.push("/submissions")}
+          onClick={() => router.push('/submissions')}
         />
-        {dashboardData.role === "admin" && (
+        {dashboardData.role === 'admin' && (
           <StatCard
             icon={<Clock size={24} className="text-amber-600" />}
             title="Audit Logs"
             value={`${dashboardData.recentActions.length} Recent`}
-            onClick={() => router.push("/settings")}
+            onClick={() => setModalOpen(true)}
           />
         )}
       </div>
@@ -136,7 +155,7 @@ const Dashboard = () => {
           <ul className="text-sm text-gray-600 space-y-1">
             {dashboardData.recentActions.map((log, i) => (
               <li key={i}>
-                {log.action} –{" "}
+                {log.action} –{' '}
                 <span className="text-gray-400 text-xs">
                   {new Date(log.timestamp).toLocaleString()}
                 </span>
@@ -146,14 +165,39 @@ const Dashboard = () => {
         </div>
       )}
 
+      {modalOpen && (
+        <div className="fixed inset-0 z-50 bg-black/40 flex items-center justify-center px-4">
+          <div className="bg-white rounded-lg w-full max-w-2xl p-6 relative max-h-[80vh] overflow-y-auto">
+            <button
+              onClick={() => setModalOpen(false)}
+              className="absolute top-3 right-3 text-gray-400 hover:text-gray-600"
+            >
+              <X size={20} />
+            </button>
+            <h2 className="text-lg font-semibold mb-4">Recent Audit Logs</h2>
+            <ul className="text-sm text-gray-800 space-y-2">
+              {logHistory.map((log, idx) => (
+                <li key={idx} className="border-b pb-2">
+                  <div>{log.action}</div>
+                  <div className="text-xs text-gray-500">
+                    {new Date(log.timestamp).toLocaleString()}
+                  </div>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </div>
+      )}
+
       <div className="hidden">
         <AlertTriangle />
         <CheckCircle />
         <FileText />
+        <BarChart2 />
       </div>
     </div>
-  );
-};
+  )
+}
 
 const StatCard = ({
   icon,
@@ -161,10 +205,10 @@ const StatCard = ({
   value,
   onClick,
 }: {
-  icon: React.ReactNode;
-  title: string;
-  value: string | number;
-  onClick: () => void;
+  icon: React.ReactNode
+  title: string
+  value: string | number
+  onClick: () => void
 }) => {
   return (
     <button
@@ -179,7 +223,7 @@ const StatCard = ({
         </p>
       </div>
     </button>
-  );
-};
+  )
+}
 
-export default Dashboard;
+export default Dashboard
