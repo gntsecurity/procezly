@@ -1,222 +1,172 @@
-"use client";
+'use client'
 
-import { useEffect, useState } from "react";
-import { supabase } from "../../utils/supabaseClient";
-import { CheckCircle, Loader, Send } from "lucide-react";
+import { useEffect, useState } from 'react'
+import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
+import { Database } from '@/types/supabase'
+import { Submission, Card } from '@/types/types'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 
-interface Submission {
-  id?: string;
-  card_id: string;
-  status: string;
-  notes: string;
-  submitted_at?: string;
-  user_id: string;
-  card_uid?: string;
-  user_display_name?: string;
+type User = {
+  id: string
+  display_name: string
 }
 
-interface Card {
-  id: string;
-  uid: string;
-}
-
-interface User {
-  id: string;
-  user_metadata?: {
-    display_name?: string;
-  };
-}
-
-const SubmissionsPage = () => {
-  const [isAdmin, setIsAdmin] = useState(false);
-  const [orgId, setOrgId] = useState<string | null>(null);
-  const [userId, setUserId] = useState<string | null>(null);
-  const [cards, setCards] = useState<Card[]>([]);
-  const [users, setUsers] = useState<User[]>([]);
-  const [submissions, setSubmissions] = useState<Submission[]>([]);
-  const [form, setForm] = useState({ card_id: "", status: "", notes: "" });
-  const [loading, setLoading] = useState(true);
+export default function SubmissionsPage() {
+  const supabase = createClientComponentClient<Database>()
+  const [submissions, setSubmissions] = useState<Submission[]>([])
+  const [cards, setCards] = useState<Card[]>([])
+  const [users, setUsers] = useState<User[]>([])
+  const [selectedCard, setSelectedCard] = useState('')
+  const [selectedStatus, setSelectedStatus] = useState('')
+  const [notes, setNotes] = useState('')
+  const [uid, setUid] = useState('')
+  const [isAdmin, setIsAdmin] = useState(false)
 
   useEffect(() => {
-    const init = async () => {
-      const { data: user } = await supabase.auth.getUser();
-      if (!user?.user?.id) return;
-      const uid = user.user.id;
-      setUserId(uid);
+    const fetchData = async () => {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser()
+
+      if (!user) return
+
+      setUid(user.id)
 
       const { data: roleData } = await supabase
-        .from("roles")
-        .select("role, organization_id")
-        .eq("user_id", uid)
-        .single();
+        .from('roles')
+        .select('role')
+        .eq('user_id', user.id)
+        .maybeSingle()
 
-      if (!roleData) return;
-      setIsAdmin(roleData.role === "admin");
-      setOrgId(roleData.organization_id);
+      const admin = roleData?.role === 'admin'
+      setIsAdmin(admin)
 
-      const [{ data: cardData }, { data: userData }, { data: submissionData }] = await Promise.all([
-        supabase.from("kamishibai_cards").select("id, uid").eq("organization_id", roleData.organization_id),
-        supabase.auth.admin.listUsers(),
-        supabase
-          .from("submissions")
-          .select("*")
-          .eq("organization_id", roleData.organization_id)
-          .order("submitted_at", { ascending: false }),
-      ]);
+      const { data: cardsData } = await supabase
+        .from('kamishibai_cards')
+        .select('id, uid')
+        .order('created_at', { ascending: true })
 
-      const cardMap = Object.fromEntries((cardData || []).map((c) => [c.id, c.uid]));
-      const userMap = Object.fromEntries(
-        (userData?.users || []).map((u) => [
-          u.id,
-          u.user_metadata?.display_name || "Unknown",
-        ])
-      );
+      const { data: submissionsData } = await supabase
+        .from('submissions')
+        .select('*')
+        .order('created_at', { ascending: false })
 
-      const withMeta = (submissionData || []).map((s) => ({
-        ...s,
-        card_uid: cardMap[s.card_id] || "Unknown",
-        user_display_name: userMap[s.user_id] || "Unknown",
-      }));
+      const filteredSubmissions = admin
+        ? submissionsData || []
+        : (submissionsData || []).filter((s) => s.user_id === user.id)
 
-      setCards(cardData || []);
-      setUsers(userData?.users || []);
-      setSubmissions(isAdmin ? withMeta : withMeta.filter((s) => s.user_id === uid));
-      setLoading(false);
-    };
+      const { data: usersData } = await supabase.auth.admin.listUsers()
 
-    init();
-  }, []);
+      const userList: User[] = usersData.users.map((u) => ({
+        id: u.id,
+        display_name: u.user_metadata?.display_name || 'Unknown',
+      }))
+
+      setCards(cardsData || [])
+      setUsers(userList)
+      setSubmissions(filteredSubmissions)
+    }
+
+    fetchData()
+  }, [])
 
   const handleSubmit = async () => {
-    if (!orgId || !userId) return;
+    if (!selectedCard || !selectedStatus) return
 
-    const payload = {
-      ...form,
-      organization_id: orgId,
-      user_id: userId,
-      submitted_at: new Date().toISOString(),
-    };
+    await supabase.from('submissions').insert([
+      {
+        user_id: uid,
+        card_id: selectedCard,
+        status: selectedStatus,
+        notes,
+      },
+    ])
 
-    await supabase.from("submissions").insert(payload);
-    setForm({ card_id: "", status: "", notes: "" });
+    setSelectedCard('')
+    setSelectedStatus('')
+    setNotes('')
 
-    const { data: updated } = await supabase
-      .from("submissions")
-      .select("*")
-      .eq("organization_id", orgId)
-      .order("submitted_at", { ascending: false });
+    const { data: submissionsData } = await supabase
+      .from('submissions')
+      .select('*')
+      .order('created_at', { ascending: false })
 
-    const cardMap = Object.fromEntries(cards.map((c) => [c.id, c.uid]));
-    const userMap = Object.fromEntries(
-      users.map((u) => [u.id, u.user_metadata?.display_name || "Unknown"])
-    );
+    const filteredSubmissions = isAdmin
+      ? submissionsData || []
+      : (submissionsData || []).filter((s) => s.user_id === uid)
 
-    const withMeta = (updated || []).map((s) => ({
-      ...s,
-      card_uid: cardMap[s.card_id] || "Unknown",
-      user_display_name: userMap[s.user_id] || "Unknown",
-    }));
-
-    setSubmissions(isAdmin ? withMeta : withMeta.filter((s) => s.user_id === userId));
-  };
-
-  if (loading) {
-    return (
-      <div className="h-screen flex items-center justify-center text-gray-600">
-        <Loader className="animate-spin mr-2" />
-        Loading...
-      </div>
-    );
+    setSubmissions(filteredSubmissions)
   }
 
+  const cardMap = Object.fromEntries(cards.map((c) => [c.id, c.uid]))
+  const userMap = Object.fromEntries(users.map((u) => [u.id, u.display_name]))
+
   return (
-    <div className="px-4 pt-6 sm:px-6 w-full max-w-5xl mx-auto">
-      <div className="flex justify-between items-center mb-4">
-        <h1 className="text-2xl font-semibold text-gray-900">Submissions</h1>
-      </div>
+    <div className="p-4">
+      <h1 className="text-lg font-semibold mb-4">Submissions</h1>
+      <div className="border rounded p-4 mb-6">
+        <h2 className="font-medium mb-2">New Submission</h2>
+        <div className="flex gap-2 flex-wrap items-end">
+          <Select value={selectedCard} onValueChange={setSelectedCard}>
+            <SelectTrigger className="w-48">
+              <SelectValue placeholder="Select Card" />
+            </SelectTrigger>
+            <SelectContent>
+              {cards.map((card) => (
+                <SelectItem key={card.id} value={card.id}>
+                  {card.uid}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
 
-      <div className="bg-white border border-gray-200 rounded-lg p-4 mb-8">
-        <h2 className="text-lg font-medium text-gray-800 mb-3">New Submission</h2>
-        <div className="grid gap-4 sm:grid-cols-3">
-          <select
-            value={form.card_id}
-            onChange={(e) => setForm({ ...form, card_id: e.target.value })}
-            className="border border-gray-300 rounded px-3 py-2"
-          >
-            <option value="">Select Card</option>
-            {cards.map((card) => (
-              <option key={card.id} value={card.id}>
-                {card.uid}
-              </option>
-            ))}
-          </select>
-          <select
-            value={form.status}
-            onChange={(e) => setForm({ ...form, status: e.target.value })}
-            className="border border-gray-300 rounded px-3 py-2"
-          >
-            <option value="">Select Status</option>
-            <option value="Passed">Passed</option>
-            <option value="Failed">Failed</option>
-            <option value="Needs Attention">Needs Attention</option>
-          </select>
-          <input
-            type="text"
-            value={form.notes}
-            onChange={(e) => setForm({ ...form, notes: e.target.value })}
+          <Select value={selectedStatus} onValueChange={setSelectedStatus}>
+            <SelectTrigger className="w-48">
+              <SelectValue placeholder="Select Status" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="Passed">Passed</SelectItem>
+              <SelectItem value="Failed">Failed</SelectItem>
+            </SelectContent>
+          </Select>
+
+          <Input
             placeholder="Notes"
-            className="border border-gray-300 rounded px-3 py-2"
+            className="w-64"
+            value={notes}
+            onChange={(e) => setNotes(e.target.value)}
           />
+
+          <Button onClick={handleSubmit}>Submit</Button>
         </div>
-        <button
-          onClick={handleSubmit}
-          disabled={!form.card_id || !form.status}
-          className="mt-4 bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 flex items-center"
-        >
-          <Send size={18} className="mr-2" />
-          Submit
-        </button>
       </div>
 
-      <div className="bg-white border border-gray-200 rounded-lg overflow-x-auto">
-        <table className="min-w-full divide-y divide-gray-200 text-sm">
-          <thead className="bg-gray-50">
-            <tr>
-              <th className="px-4 py-2 text-left text-gray-600">Card UID</th>
-              <th className="px-4 py-2 text-left text-gray-600">Status</th>
-              <th className="px-4 py-2 text-left text-gray-600">Notes</th>
-              <th className="px-4 py-2 text-left text-gray-600">Submitted By</th>
-              <th className="px-4 py-2 text-left text-gray-600">Date</th>
-            </tr>
-          </thead>
-          <tbody>
-            {submissions.map((s) => (
-              <tr key={s.id} className="hover:bg-gray-50">
-                <td className="px-4 py-2 text-gray-900">{s.card_uid}</td>
-                <td className="px-4 py-2 text-gray-900">{s.status}</td>
-                <td className="px-4 py-2 text-gray-900">{s.notes}</td>
-                <td className="px-4 py-2 text-gray-900">{s.user_display_name}</td>
-                <td className="px-4 py-2 text-gray-900">
-                  {new Date(s.submitted_at!).toLocaleString()}
-                </td>
-              </tr>
-            ))}
-            {submissions.length === 0 && (
-              <tr>
-                <td colSpan={5} className="px-4 py-4 text-center text-gray-500">
-                  No submissions found.
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
-      </div>
-
-      <div className="hidden">
-        <CheckCircle />
+      <div className="border rounded">
+        <div className="grid grid-cols-5 gap-2 p-2 border-b text-sm font-medium bg-gray-50">
+          <div>Card UID</div>
+          <div>Status</div>
+          <div>Notes</div>
+          <div>Submitted By</div>
+          <div>Date</div>
+        </div>
+        {submissions.map((s) => (
+          <div
+            key={s.id}
+            className="grid grid-cols-5 gap-2 p-2 border-b text-sm"
+          >
+            <div>{cardMap[s.card_id] || 'Unknown'}</div>
+            <div>{s.status}</div>
+            <div>{s.notes}</div>
+            <div>{userMap[s.user_id] || 'Unknown'}</div>
+            <div>{new Date(s.created_at).toLocaleString()}</div>
+          </div>
+        ))}
       </div>
     </div>
-  );
-};
+  )
+}
 
 export default SubmissionsPage;
