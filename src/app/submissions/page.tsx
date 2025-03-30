@@ -23,6 +23,7 @@ interface Card {
 interface User {
   id: string;
   email: string;
+  user_metadata?: { full_name?: string };
 }
 
 const SubmissionsPage = () => {
@@ -54,7 +55,7 @@ const SubmissionsPage = () => {
 
       const [{ data: cardData }, { data: userData }, { data: submissionData }] = await Promise.all([
         supabase.from("kamishibai_cards").select("id, uid").eq("organization_id", roleData.organization_id),
-        supabase.from("users").select("id, email"),
+        supabase.from("users").select("id, email, user_metadata"),
         supabase
           .from("submissions")
           .select("*")
@@ -63,7 +64,12 @@ const SubmissionsPage = () => {
       ]);
 
       const cardMap = Object.fromEntries((cardData || []).map((c) => [c.id, c.uid]));
-      const userMap = Object.fromEntries((userData || []).map((u) => [u.id, u.email]));
+      const userMap = Object.fromEntries(
+        (userData || []).map((u) => [
+          u.id,
+          u.user_metadata?.full_name || u.email?.split("@")[0] || "Unknown",
+        ])
+      );
 
       const withMeta = (submissionData || []).map((s) => ({
         ...s,
@@ -100,7 +106,12 @@ const SubmissionsPage = () => {
       .order("submitted_at", { ascending: false });
 
     const cardMap = Object.fromEntries(cards.map((c) => [c.id, c.uid]));
-    const userMap = Object.fromEntries(users.map((u) => [u.id, u.email]));
+    const userMap = Object.fromEntries(
+      users.map((u) => [
+        u.id,
+        u.user_metadata?.full_name || u.email?.split("@")[0] || "Unknown",
+      ])
+    );
 
     const withMeta = (updated || []).map((s) => ({
       ...s,
