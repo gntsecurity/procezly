@@ -11,6 +11,7 @@ type Org = {
 
 type User = {
   id: string;
+  user_id: string;
   email: string;
   role: string;
 };
@@ -27,12 +28,14 @@ export default function OrganizationSettings() {
   const [logs, setLogs] = useState<AuditLog[]>([]);
   const [stats, setStats] = useState({ cards: 0, submissions: 0 });
   const [updatingId, setUpdatingId] = useState<string | null>(null);
+  const [currentUserId, setCurrentUserId] = useState<string>('');
 
   useEffect(() => {
     const load = async () => {
       const { data: session } = await supabase.auth.getSession();
       const userId = session?.session?.user.id;
       if (!userId) return;
+      setCurrentUserId(userId);
 
       const { data: role } = await supabase
         .from('roles')
@@ -137,13 +140,15 @@ export default function OrganizationSettings() {
                 <p className="text-sm font-medium">{u.email}</p>
                 <p className="text-xs text-gray-500 capitalize">{u.role}</p>
               </div>
-              <button
-                onClick={() => toggleRole(u.id, u.role)}
-                disabled={updatingId === u.id}
-                className="text-sm text-blue-600 underline"
-              >
-                Make {u.role === 'admin' ? 'User' : 'Admin'}
-              </button>
+              {u.user_id !== currentUserId && (
+                <button
+                  onClick={() => toggleRole(u.id, u.role)}
+                  disabled={updatingId === u.id}
+                  className="text-sm text-blue-600 underline"
+                >
+                  Make {u.role === 'admin' ? 'User' : 'Admin'}
+                </button>
+              )}
             </li>
           ))}
         </ul>
