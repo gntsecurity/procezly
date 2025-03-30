@@ -2,7 +2,17 @@
 
 import { useRouter } from "next/navigation";
 import { supabase } from "../utils/supabaseClient";
-import { Home, LogOut, Menu, ClipboardList, CheckCircle, Settings } from "lucide-react";
+import {
+  Home,
+  LogOut,
+  Menu,
+  ClipboardList,
+  CheckCircle,
+  Settings,
+  BarChart,
+  Calendar,
+  Download
+} from "lucide-react";
 import { useEffect, useState } from "react";
 
 interface SidebarProps {
@@ -89,6 +99,18 @@ const Sidebar: React.FC<SidebarProps> = ({ collapsed, setCollapsed }) => {
           <a href="/submissions" className="flex items-center space-x-3 p-2 rounded-md hover:bg-gray-100">
             <CheckCircle size={22} className="text-gray-800" />
             {!collapsed && <span>Submissions</span>}
+          </a>
+          <a href="/compliance" className="flex items-center space-x-3 p-2 rounded-md hover:bg-gray-100">
+            <BarChart size={22} className="text-gray-800" />
+            {!collapsed && <span>Compliance</span>}
+          </a>
+          <a href="/scheduler" className="flex items-center space-x-3 p-2 rounded-md hover:bg-gray-100">
+            <Calendar size={22} className="text-gray-800" />
+            {!collapsed && <span>Scheduler</span>}
+          </a>
+          <a href="/exports" className="flex items-center space-x-3 p-2 rounded-md hover:bg-gray-100">
+            <Download size={22} className="text-gray-800" />
+            {!collapsed && <span>Export</span>}
           </a>
         </nav>
       </div>

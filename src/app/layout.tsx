@@ -16,7 +16,15 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   const [collapsed, setCollapsed] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
 
-  const dashboardRoutes = ["/dashboard", "/kamishibai", "/submissions", "/settings"];
+  const dashboardRoutes = [
+    "/dashboard",
+    "/kamishibai",
+    "/submissions",
+    "/settings",
+    "/compliance",
+    "/scheduler",
+    "/exports"
+  ];
   const isDashboardPage = dashboardRoutes.some(route => pathname.startsWith(route));
 
   useEffect(() => {
