@@ -1,15 +1,8 @@
 // next.config.ts
 const nextConfig = {
   output: "export",
-  eslint: {
-    ignoreDuringBuilds: true,
-  },
-  typescript: {
-    ignoreBuildErrors: true,
-  },
   experimental: {
-    serverActions: {},
-    typedRoutes: true,
+    serverActions: {}, // Fix: Should be an object, not a boolean
   },
 };
 
