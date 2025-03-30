@@ -1,247 +1,193 @@
-"use client";
+'use client';
 
-import { useEffect, useState } from "react";
-import Link from "next/link";
-import Image from "next/image";
-import QRCode from "qrcode";
-import { supabase } from "../../../utils/supabaseClient";
-import { createClient } from "@supabase/supabase-js";
+import { useEffect, useState } from 'react';
+import Link from 'next/link';
+import { supabase } from '../../../utils/supabaseClient';
+import { createClient } from '@supabase/supabase-js';
 
-const adminClient = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
-
-type Org = {
+type RoleEntry = {
   id: string;
-  name: string;
-  timezone: string;
-  created_at: string;
-};
-
-type RoleUser = {
   user_id: string;
   role: string;
-  email: string;
 };
 
-type AuditLog = {
+type AuditLogEntry = {
   id: string;
-  timestamp: string;
   action: string;
+  timestamp: string;
+  context: Record<string, unknown>;
 };
 
-const OrganizationSettingsPage = () => {
-  const [org, setOrg] = useState<Org | null>(null);
-  const [users, setUsers] = useState<RoleUser[]>([]);
-  const [logs, setLogs] = useState<AuditLog[]>([]);
-  const [stats, setStats] = useState({ cards: 0, submissions: 0 });
-  const [isAdmin, setIsAdmin] = useState(false);
-  const [emailInput, setEmailInput] = useState("");
-  const [inviteLink, setInviteLink] = useState("");
-  const [qrUrl, setQrUrl] = useState("");
-
-  const fetchData = async () => {
-    const { data: session } = await supabase.auth.getUser();
-    const userId = session?.user?.id;
-    if (!userId) return;
-
-    const { data: role } = await supabase
-      .from("roles")
-      .select("role, organization_id")
-      .eq("user_id", userId)
-      .single();
-
-    if (!role) return;
-    setIsAdmin(role.role === "admin");
-
-    const { data: organization } = await supabase
-      .from("organizations")
-      .select("*")
-      .eq("id", role.organization_id)
-      .single();
-
-    setOrg(organization);
-
-    const { data: roleUsers } = await supabase
-      .from("roles")
-      .select("user_id, role")
-      .eq("organization_id", role.organization_id);
-
-    const userIds = roleUsers.map((r) => r.user_id);
-
-    const { data: authUsers } = await supabase
-      .from("users_view")
-      .select("id, email")
-      .in("id", userIds);
-
-    const merged = roleUsers.map((r) => ({
-      ...r,
-      email: authUsers.find((u) => u.id === r.user_id)?.email || "",
-    }));
-
-    setUsers(merged);
-
-    const { data: audit } = await supabase
-      .from("audit_logs")
-      .select("*")
-      .eq("organization_id", role.organization_id)
-      .order("timestamp", { ascending: false })
-      .limit(5);
-
-    setLogs(audit || []);
-
-    const { count: cards } = await supabase
-      .from("kamishibai_cards")
-      .select("*", { count: "exact", head: true })
-      .eq("organization_id", role.organization_id);
-
-    const { count: submissions } = await supabase
-      .from("submissions")
-      .select("*", { count: "exact", head: true })
-      .eq("organization_id", role.organization_id);
-
-    setStats({ cards: cards || 0, submissions: submissions || 0 });
-
-    const link = `${window.location.origin}/invite/${role.organization_id}`;
-    setInviteLink(link);
-
-    const qr = await QRCode.toDataURL(link);
-    setQrUrl(qr);
-  };
-
-  const addUser = async () => {
-    if (!emailInput || !org) return;
-
-    const { data: newUser, error } = await adminClient.auth.admin.createUser({
-      email: emailInput,
-      email_confirm: true,
-    });
-
-    if (newUser?.user?.id) {
-      await supabase.from("roles").insert({
-        user_id: newUser.user.id,
-        organization_id: org.id,
-        role: "user",
-      });
-
-      setEmailInput("");
-      fetchData();
-    } else {
-      console.error(error);
-    }
-  };
-
-  const toggleRole = async (user_id: string, currentRole: string) => {
-    const newRole = currentRole === "admin" ? "user" : "admin";
-    await supabase
-      .from("roles")
-      .update({ role: newRole })
-      .eq("user_id", user_id)
-      .eq("organization_id", org?.id);
-    fetchData();
-  };
+export default function OrganizationSettings() {
+  const [organizationId, setOrganizationId] = useState<string>('');
+  const [createdAt, setCreatedAt] = useState<string>('');
+  const [users, setUsers] = useState<any[]>([]);
+  const [auditLogs, setAuditLogs] = useState<AuditLogEntry[]>([]);
+  const [cardCount, setCardCount] = useState<number>(0);
+  const [submissionCount, setSubmissionCount] = useState<number>(0);
+  const [updating, setUpdating] = useState(false);
 
   useEffect(() => {
+    const fetchData = async () => {
+      const {
+        data: {
+          session,
+        },
+      } = await supabase.auth.getSession();
+
+      const user = session?.user;
+      if (!user) return;
+
+      const { data: roles } = await supabase
+        .from('roles')
+        .select('organization_id')
+        .eq('user_id', user.id)
+        .eq('role', 'admin')
+        .single();
+
+      if (!roles) return;
+
+      const orgId = roles.organization_id;
+      setOrganizationId(orgId);
+
+      const { data: orgData } = await supabase
+        .from('organizations')
+        .select('created_at')
+        .eq('id', orgId)
+        .single();
+
+      if (orgData) setCreatedAt(orgData.created_at);
+
+      const { data: userList } = await supabase
+        .from('users_view')
+        .select('*')
+        .eq('organization_id', orgId);
+
+      setUsers(userList || []);
+
+      const { data: logs } = await supabase
+        .from('audit_logs')
+        .select('id, action, timestamp, context')
+        .eq('organization_id', orgId)
+        .order('timestamp', { ascending: false })
+        .limit(5);
+
+      setAuditLogs(logs || []);
+
+      const { count: cardCount } = await supabase
+        .from('kamishibai_cards')
+        .select('*', { count: 'exact', head: true })
+        .eq('organization_id', orgId);
+
+      setCardCount(cardCount || 0);
+
+      const { count: submissionCount } = await supabase
+        .from('submissions')
+        .select('*', { count: 'exact', head: true })
+        .eq('organization_id', orgId);
+
+      setSubmissionCount(submissionCount || 0);
+    };
+
     fetchData();
   }, []);
 
-  if (!isAdmin || !org) return null;
+  const handleRoleChange = async (id: string, newRole: string) => {
+    setUpdating(true);
+    await supabase.from('roles').update({ role: newRole }).eq('id', id);
+    const updatedUsers = users.map((user) =>
+      user.id === id ? { ...user, role: newRole } : user
+    );
+    setUsers(updatedUsers);
+    setUpdating(false);
+  };
+
+  const handleAddUser = async (email: string) => {
+    const response = await fetch('/functions/api/subscribe', {
+      method: 'POST',
+      body: JSON.stringify({ email }),
+    });
+    await response.json();
+  };
 
   return (
-    <div className="px-4 pt-6 sm:px-6 w-full max-w-5xl mx-auto">
-      <Link
-        href="/settings"
-        className="text-sm text-blue-600 hover:underline inline-block mb-4"
-      >
+    <div className="max-w-4xl mx-auto px-4 py-6">
+      <Link href="/settings" className="text-sm text-blue-600 hover:underline">
         ← Back to Settings
       </Link>
+      <h2 className="text-2xl font-bold mt-4">Organization Settings</h2>
 
-      <h1 className="text-2xl font-semibold text-gray-900 mb-6">Organization Settings</h1>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-        <div className="bg-white border rounded p-4 space-y-2">
-          <div><strong>Name:</strong> {org.name}</div>
-          <div><strong>Timezone:</strong> {org.timezone}</div>
-          <div><strong>UUID:</strong> {org.id}</div>
-          <div><strong>Created:</strong> {new Date(org.created_at).toLocaleString()}</div>
-        </div>
-        <div className="bg-white border rounded p-4 space-y-2">
-          <div><strong>Kamishibai Cards:</strong> {stats.cards}</div>
-          <div><strong>Submissions:</strong> {stats.submissions}</div>
-          <div><strong>Invite Link:</strong> <a href={inviteLink} className="text-blue-600 underline">{inviteLink}</a></div>
-          {qrUrl && (
-            <Image
-              src={qrUrl}
-              alt="QR Code"
-              width={100}
-              height={100}
-              className="mt-2"
-            />
-          )}
-        </div>
+      <div className="mt-6">
+        <p className="text-sm">Organization ID:</p>
+        <p className="font-mono text-blue-600 break-all">{organizationId}</p>
+        <p className="mt-2 text-sm text-gray-500">
+          Created: {createdAt ? new Date(createdAt).toLocaleString() : '...'}
+        </p>
+        <p className="mt-2">Kamishibai Cards: {cardCount}</p>
+        <p className="mt-1">Submissions: {submissionCount}</p>
       </div>
 
-      <div className="bg-white border rounded p-4 mb-8">
-        <h2 className="text-lg font-medium mb-4">Add New User</h2>
-        <div className="flex gap-4">
+      <div className="mt-6">
+        <h3 className="font-semibold mb-2">Invite User</h3>
+        <form
+          className="flex gap-2"
+          onSubmit={(e) => {
+            e.preventDefault();
+            const email = (e.target as any).email.value;
+            if (email) handleAddUser(email);
+          }}
+        >
           <input
-            type="email"
-            value={emailInput}
-            onChange={(e) => setEmailInput(e.target.value)}
-            placeholder="Email address"
-            className="flex-1 border px-3 py-2 rounded"
+            name="email"
+            placeholder="user@example.com"
+            className="border px-2 py-1 text-sm rounded w-full"
+            required
           />
           <button
-            onClick={addUser}
-            className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+            type="submit"
+            className="bg-blue-600 text-white px-3 py-1 rounded text-sm"
           >
             Add
           </button>
-        </div>
+        </form>
       </div>
 
-      <div className="bg-white border rounded p-4 mb-8">
-        <h2 className="text-lg font-medium mb-4">Users</h2>
-        <table className="w-full text-sm">
-          <thead>
-            <tr className="border-b">
-              <th className="text-left py-2">Email</th>
-              <th className="text-left py-2">Role</th>
-              <th className="text-left py-2">Action</th>
-            </tr>
-          </thead>
-          <tbody>
-            {users.map((u) => (
-              <tr key={u.user_id} className="border-t">
-                <td className="py-2">{u.email}</td>
-                <td className="py-2 capitalize">{u.role}</td>
-                <td className="py-2">
-                  <button
-                    onClick={() => toggleRole(u.user_id, u.role)}
-                    className="text-sm text-blue-600 underline"
-                  >
-                    Make {u.role === "admin" ? "User" : "Admin"}
-                  </button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+      <div className="mt-6">
+        <h3 className="font-semibold mb-2">Users</h3>
+        <ul className="space-y-2">
+          {users.map((user) => (
+            <li key={user.id} className="flex justify-between items-center border p-2 rounded">
+              <div>
+                <p className="text-sm font-medium">{user.email}</p>
+                <p className="text-xs text-gray-500">{user.role}</p>
+              </div>
+              <select
+                disabled={updating}
+                value={user.role}
+                onChange={(e) => handleRoleChange(user.id, e.target.value)}
+                className="text-sm border rounded px-2 py-1"
+              >
+                <option value="user">User</option>
+                <option value="admin">Admin</option>
+              </select>
+            </li>
+          ))}
+        </ul>
       </div>
 
-      <div className="bg-white border rounded p-4 mb-8">
-        <h2 className="text-lg font-medium mb-4">Recent Audit Logs</h2>
-        <ul className="text-sm space-y-2">
-          {logs.map((log) => (
-            <li key={log.id}>
-              [{new Date(log.timestamp).toLocaleString()}] {log.action}
+      <div className="mt-6">
+        <h3 className="font-semibold mb-2">Audit Log (Last 5)</h3>
+        <ul className="text-sm space-y-1">
+          {auditLogs.map((log) => (
+            <li key={log.id} className="border p-2 rounded">
+              <p>{log.action}</p>
+              <p className="text-xs text-gray-500">
+                {new Date(log.timestamp).toLocaleString()}
+              </p>
             </li>
           ))}
         </ul>
       </div>
     </div>
   );
-};
-
-export default OrganizationSettingsPage;
+}
