@@ -26,7 +26,6 @@ export default function OrganizationSettings() {
   const [users, setUsers] = useState<User[]>([]);
   const [logs, setLogs] = useState<AuditLog[]>([]);
   const [stats, setStats] = useState({ cards: 0, submissions: 0 });
-  const [email, setEmail] = useState('');
   const [updatingId, setUpdatingId] = useState<string | null>(null);
 
   useEffect(() => {
