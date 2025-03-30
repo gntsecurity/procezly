@@ -8,6 +8,8 @@
     "start": "next start"
   },
   "dependencies": {
+    "react-dnd": "16.0.1",
+    "react-dnd-html5-backend": "16.0.1",
     "@supabase/supabase-js": "^2.49.1",
     "framer-motion": "^12.5.0",
     "lottie-react": "^2.4.1",
