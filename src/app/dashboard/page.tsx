@@ -18,6 +18,8 @@ const Dashboard = () => {
     totalCards: 0,
     activeUsers: 0,
     complianceScore: 0,
+    recentActions: [] as { action: string; timestamp: string }[],
+    role: "",
   });
 
   const [userName, setUserName] = useState("");
@@ -42,36 +44,51 @@ const Dashboard = () => {
 
       const { data: roleData } = await supabase
         .from("roles")
-        .select("organization_id")
+        .select("organization_id, role")
         .eq("user_id", user.user.id)
         .single();
 
       if (!roleData) return;
 
-      const { data: cards } = await supabase
-        .from("kamishibai_cards")
-        .select("*")
-        .eq("organization_id", roleData.organization_id);
-
-      const { data: users } = await supabase
-        .from("roles")
-        .select("user_id")
-        .eq("organization_id", roleData.organization_id);
+      const [cards, users, submissions, logs] = await Promise.all([
+        supabase
+          .from("kamishibai_cards")
+          .select("*")
+          .eq("organization_id", roleData.organization_id),
+        supabase
+          .from("roles")
+          .select("user_id")
+          .eq("organization_id", roleData.organization_id),
+        supabase
+          .from("submissions")
+          .select("id")
+          .eq("organization_id", roleData.organization_id),
+        supabase
+          .from("audit_logs")
+          .select("action, timestamp")
+          .eq("organization_id", roleData.organization_id)
+          .order("timestamp", { ascending: false })
+          .limit(5),
+      ]);
 
       setDashboardData({
-        totalCards: cards?.length || 0,
-        activeUsers: users?.length || 0,
-        complianceScore: 87,
+        totalCards: cards.data?.length || 0,
+        activeUsers: users.data?.length || 0,
+        complianceScore: submissions.data?.length
+          ? Math.min(100, submissions.data.length * 3)
+          : 0,
+        recentActions: logs.data || [],
+        role: roleData.role || "",
       });
     };
 
     checkAuth();
     fetchData();
+    const interval = setInterval(fetchData, 120000);
+    return () => clearInterval(interval);
   }, []);
 
-  if (!isAuthenticated) {
-    return <div>Loading...</div>;
-  }
+  if (!isAuthenticated) return <div>Loading...</div>;
 
   return (
     <div className="px-4 pt-4 sm:px-6 sm:pt-6 w-full max-w-7xl mx-auto">
@@ -101,12 +118,37 @@ const Dashboard = () => {
           value={`${dashboardData.complianceScore}%`}
           onClick={() => router.push("/submissions")}
         />
+        {dashboardData.role === "admin" && (
+          <StatCard
+            icon={<Clock size={24} className="text-amber-600" />}
+            title="Audit Logs"
+            value={`${dashboardData.recentActions.length} Recent`}
+            onClick={() => router.push("/settings")}
+          />
+        )}
       </div>
+
+      {dashboardData.recentActions.length > 0 && (
+        <div className="mt-8">
+          <h2 className="text-sm font-medium text-gray-700 mb-2">
+            Recent Activity
+          </h2>
+          <ul className="text-sm text-gray-600 space-y-1">
+            {dashboardData.recentActions.map((log, i) => (
+              <li key={i}>
+                {log.action} –{" "}
+                <span className="text-gray-400 text-xs">
+                  {new Date(log.timestamp).toLocaleString()}
+                </span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
 
       <div className="hidden">
         <AlertTriangle />
         <CheckCircle />
-        <Clock />
         <FileText />
       </div>
     </div>
@@ -127,7 +169,7 @@ const StatCard = ({
   return (
     <button
       onClick={onClick}
-      className="w-full text-left bg-white px-4 py-3 sm:p-6 rounded-lg shadow-sm flex items-center space-x-4 border border-gray-200 hover:shadow-md transition"
+      className="w-full text-left bg-white px-4 py-3 sm:p-6 rounded-lg shadow-sm flex items-center space-x-4 border border-gray-200 hover:shadow-md hover:scale-[1.01] transition"
     >
       <div className="p-2 sm:p-3 bg-gray-100 rounded-full">{icon}</div>
       <div className="flex flex-col justify-center">
