@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { supabase } from "../../../utils/supabaseClient";
 import { createClient } from "@supabase/supabase-js";
-import QRCode from "qrcode.react";
+import QRCode from "qrcode";
 
 const adminClient = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -19,6 +19,7 @@ const OrganizationSettingsPage = () => {
   const [isAdmin, setIsAdmin] = useState(false);
   const [emailInput, setEmailInput] = useState("");
   const [inviteLink, setInviteLink] = useState("");
+  const [qrUrl, setQrUrl] = useState("");
 
   const fetchData = async () => {
     const { data: session } = await supabase.auth.getUser();
@@ -82,7 +83,11 @@ const OrganizationSettingsPage = () => {
 
     setStats({ cards: cards || 0, submissions: submissions || 0 });
 
-    setInviteLink(`${window.location.origin}/invite/${role.organization_id}`);
+    const link = `${window.location.origin}/invite/${role.organization_id}`;
+    setInviteLink(link);
+
+    const qr = await QRCode.toDataURL(link);
+    setQrUrl(qr);
   };
 
   const addUser = async () => {
@@ -145,7 +150,7 @@ const OrganizationSettingsPage = () => {
           <div><strong>Kamishibai Cards:</strong> {stats.cards}</div>
           <div><strong>Submissions:</strong> {stats.submissions}</div>
           <div><strong>Invite Link:</strong> <a href={inviteLink} className="text-blue-600 underline">{inviteLink}</a></div>
-          <QRCode value={inviteLink} size={100} />
+          {qrUrl && <img src={qrUrl} alt="QR Code" className="mt-2" />}
         </div>
       </div>
 
