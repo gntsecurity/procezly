@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter, usePathname } from "next/navigation";
+import InstallPrompt from "../components/InstallPrompt";
 import { supabase } from "../utils/supabaseClient";
 import Sidebar from "../components/Sidebar";
 import Footer from "../components/Footer";
@@ -20,7 +21,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 
   useEffect(() => {
     if ("serviceWorker" in navigator) {
-      navigator.serviceWorker.register("/sw.js").then(() => {
+      navigator.serviceWorker.register("/service-worker.js").then(() => {
         console.log("Service Worker Registered");
       });
     }
@@ -79,6 +80,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <CookieBanner />
           </div>
         </div>
+       <InstallPrompt />
       </body>
     </html>
   );

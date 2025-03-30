@@ -1,36 +1,29 @@
-"use client";
-
 import { useEffect, useState } from "react";
 
-type BeforeInstallPromptEvent = Event & {
-  prompt: () => Promise<void>;
-  userChoice: Promise<{ outcome: "accepted" | "dismissed" }>;
-};
-
-const isStandalone = (): boolean =>
-  window.matchMedia("(display-mode: standalone)").matches ||
-  // @ts-expect-error: iOS only property
-  window.navigator.standalone === true;
+function isStandalone() {
+  return window.matchMedia("(display-mode: standalone)").matches || (window.navigator as any).standalone === true;
+}
 
 export default function InstallPrompt() {
-  const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
+  const [deferred, setDeferred] = useState<any>(null);
   const [show, setShow] = useState(false);
   const [isIOS, setIsIOS] = useState(false);
 
   useEffect(() => {
-    const isIosDevice = /iphone|ipad|ipod/i.test(navigator.userAgent.toLowerCase());
-    const alreadyInstalled = isStandalone();
+    const iOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
+    const standalone = isStandalone();
 
-    setIsIOS(isIosDevice);
-    if (alreadyInstalled) return;
+    setIsIOS(iOS);
 
-    if (isIosDevice) {
+    if (standalone) return;
+
+    if (iOS) {
       setShow(true);
     }
 
-    const handleBeforeInstall = (e: Event) => {
+    const handleBeforeInstall = (e: any) => {
       e.preventDefault();
-      setDeferredPrompt(e as BeforeInstallPromptEvent);
+      setDeferred(e);
       setShow(true);
     };
 
@@ -39,24 +32,18 @@ export default function InstallPrompt() {
   }, []);
 
   const triggerInstall = async () => {
-    if (!deferredPrompt) return;
-    await deferredPrompt.prompt();
-    const result = await deferredPrompt.userChoice;
-    if (result.outcome === "accepted") setShow(false);
+    if (!deferred) return;
+    deferred.prompt();
+    const res = await deferred.userChoice;
+    if (res.outcome === "accepted") setShow(false);
   };
 
   if (!show) return null;
 
   return (
-    <div
-      className="fixed bottom-6 left-4 right-4 z-50 rounded-2xl border border-gray-200 bg-white shadow-xl p-4 flex items-center justify-between backdrop-blur-md animate-fade-in"
-      role="dialog"
-      aria-live="polite"
-    >
+    <div className="fixed bottom-6 left-4 right-4 z-50 rounded-2xl border border-gray-200 bg-white shadow-lg p-4 flex items-center justify-between backdrop-blur-md">
       <span className="text-sm font-medium text-gray-900">
-        {isIOS
-          ? 'Tap “Share” → “Add to Home Screen”'
-          : "Install Procezly to Home Screen"}
+        {isIOS ? "Tap Share → Add to Home Screen" : "Install GNT Security to Home Screen"}
       </span>
       {!isIOS && (
         <button
