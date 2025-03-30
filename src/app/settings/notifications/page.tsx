@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { supabase } from "../../../utils/supabaseClient";
 
 const NotificationSettingsPage = () => {
@@ -62,6 +63,13 @@ const NotificationSettingsPage = () => {
 
   return (
     <div className="px-4 pt-6 sm:px-6 w-full max-w-3xl mx-auto">
+      <Link
+        href="/settings"
+        className="text-sm text-blue-600 hover:underline inline-block mb-4"
+      >
+        ← Back to Settings
+      </Link>
+
       <h1 className="text-2xl font-semibold text-gray-900 mb-6">Notification Settings</h1>
 
       <div className="bg-white border border-gray-200 rounded-lg p-6 space-y-4">
