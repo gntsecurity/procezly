@@ -1,29 +1,34 @@
-import type { NextApiRequest, NextApiResponse } from 'next'
-import nodemailer from 'nodemailer'
-
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  if (req.method !== 'POST') return res.status(405).end()
-
-  const { host, port, username, password, from_email, secure } = req.body
-
+export const onRequestPost: PagesFunction = async (context) => {
   try {
-    const transporter = nodemailer.createTransport({
-      host,
-      port,
-      secure,
-      auth: username && password ? { user: username, pass: password } : undefined,
-      tls: { rejectUnauthorized: false },
+    const body = await context.request.json()
+    const { host, port, username, password, from_email, secure } = body
+
+    const testResult = await fetch('https://api.smtp2go.com/v3/email/send', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        api_key: 'api-419EF92F87354783B6469E4B6CB1AEFB',
+        sender: from_email,
+        to: [from_email],
+        subject: 'SMTP Test Email',
+        text_body: 'SMTP settings validated successfully.',
+        smtp_server: host,
+        smtp_port: port,
+        smtp_username: username || undefined,
+        smtp_password: password || undefined,
+        secure,
+      }),
     })
 
-    await transporter.sendMail({
-      from: from_email,
-      to: from_email,
-      subject: 'SMTP Test',
-      text: 'This is a test email from Procezly SMTP configuration.',
-    })
+    if (!testResult.ok) {
+      const err = await testResult.json()
+      return new Response(JSON.stringify({ success: false, error: err }), { status: 500 })
+    }
 
-    return res.status(200).json({ success: true })
-  } catch (error: any) {
-    return res.status(500).json({ success: false, error: error.message || 'Unknown error' })
+    return new Response(JSON.stringify({ success: true }), { status: 200 })
+  } catch (e: any) {
+    return new Response(JSON.stringify({ success: false, error: e.message || 'Unknown error' }), {
+      status: 500,
+    })
   }
 }
