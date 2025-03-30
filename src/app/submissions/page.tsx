@@ -20,7 +20,7 @@ interface Card {
   uid: string;
 }
 
-interface User {
+interface NormalizedUser {
   id: string;
   email: string;
   user_metadata?: { full_name?: string };
@@ -31,7 +31,7 @@ const SubmissionsPage = () => {
   const [orgId, setOrgId] = useState<string | null>(null);
   const [userId, setUserId] = useState<string | null>(null);
   const [cards, setCards] = useState<Card[]>([]);
-  const [users, setUsers] = useState<User[]>([]);
+  const [users, setUsers] = useState<NormalizedUser[]>([]);
   const [submissions, setSubmissions] = useState<Submission[]>([]);
   const [form, setForm] = useState({ card_id: "", status: "", notes: "" });
   const [loading, setLoading] = useState(true);
@@ -63,13 +63,17 @@ const SubmissionsPage = () => {
           .order("submitted_at", { ascending: false }),
       ]);
 
-      const userList = usersRes?.data?.users || [];
+      const userList: NormalizedUser[] = (usersRes?.data?.users || []).map((u) => ({
+        id: u.id,
+        email: u.email || "",
+        user_metadata: u.user_metadata,
+      }));
 
       const cardMap = Object.fromEntries((cardData || []).map((c) => [c.id, c.uid]));
       const userMap = Object.fromEntries(
         userList.map((u) => [
           u.id,
-          u.user_metadata?.full_name || u.email?.split("@")[0] || "Unknown",
+          u.user_metadata?.full_name || u.email.split("@")[0] || "Unknown",
         ])
       );
 
@@ -111,7 +115,7 @@ const SubmissionsPage = () => {
     const userMap = Object.fromEntries(
       users.map((u) => [
         u.id,
-        u.user_metadata?.full_name || u.email?.split("@")[0] || "Unknown",
+        u.user_metadata?.full_name || u.email.split("@")[0] || "Unknown",
       ])
     );
 
