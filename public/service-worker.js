@@ -1,17 +1,15 @@
-const CACHE_NAME = "gnt-cache-v1";
+const CACHE_NAME = "procezly-cache-v1";
 const ASSETS_TO_CACHE = [
   "/",
-  "/index.html",
   "/manifest.json",
+  "/icon-76x76.png",
+  "/icon-120x120.png",
+  "/icon-152x152.png",
+  "/icon-180x180.png",
   "/icon-192x192.png",
-  "/icon-512x512.png",
-  "/icon-apple-180x180.png",
-  "/icon-apple-152x152.png",
-  "/icon-apple-120x120.png",
-  "/icon-apple-76x76.png"
+  "/icon-512x512.png"
 ];
 
-// Install
 self.addEventListener("install", (event) => {
   self.skipWaiting();
   event.waitUntil(
@@ -21,31 +19,22 @@ self.addEventListener("install", (event) => {
   );
 });
 
-// Activate
 self.addEventListener("activate", (event) => {
   event.waitUntil(
     caches.keys().then((cacheNames) =>
       Promise.all(
-        cacheNames
-          .filter((name) => name !== CACHE_NAME)
-          .map((name) => caches.delete(name))
+        cacheNames.filter((name) => name !== CACHE_NAME).map((name) => caches.delete(name))
       )
     )
   );
   self.clients.claim();
 });
 
-// Fetch
 self.addEventListener("fetch", (event) => {
   if (event.request.method !== "GET") return;
   event.respondWith(
     caches.match(event.request).then((cached) => {
-      return (
-        cached ||
-        fetch(event.request).catch(() =>
-          caches.match("/index.html")
-        )
-      );
+      return cached || fetch(event.request).catch(() => caches.match("/"));
     })
   );
 });

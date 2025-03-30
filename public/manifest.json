@@ -1,6 +1,6 @@
 {
-  "name": "GNT Security",
-  "short_name": "GNT Security",
+  "name": "Procezly",
+  "short_name": "Procezly",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
@@ -19,29 +19,10 @@
       "type": "image/png"
     },
     {
-      "src": "/icon-1024x1024.png",
-      "sizes": "1024x1024",
-      "type": "image/png"
-    },
-    {
-      "src": "/icon-apple-180x180.png",
+      "src": "/icon-180x180.png",
       "sizes": "180x180",
       "type": "image/png",
       "purpose": "any maskable"
-    }
-  ],
-  "shortcuts": [
-    {
-      "name": "Procezly",
-      "short_name": "Procezly",
-      "description": "Launch Procezly directly",
-      "url": "/procezly",
-      "icons": [
-        {
-          "src": "/icon-192x192.png",
-          "sizes": "192x192"
-        }
-      ]
     }
   ]
 }
