@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useEffect, useState } from "react";
@@ -47,15 +46,17 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="relative flex items-center justify-center min-h-screen bg-gray-100">
+    <div className="relative flex items-center justify-center min-h-screen bg-gray-100 px-4">
       <img
         src="/login-bg.webp"
         alt="Background"
         className="absolute inset-0 w-full h-full object-cover z-0 opacity-90"
       />
-      <div className="absolute top-6 left-6 z-10">
-        <img src="/gnts_logo.png" alt="GNT Security" className="w-40 h-auto" />
+
+      <div className="absolute z-10 w-full flex justify-center md:justify-start md:w-auto top-6 left-0 md:left-6">
+        <img src="/gnts_logo.png" alt="GNT Security" className="w-32 h-auto" />
       </div>
+
       <div className="relative z-10 bg-white p-10 rounded-2xl shadow-2xl w-full max-w-md border border-gray-100 flex flex-col items-center">
         <img
           src="/logo.png"
