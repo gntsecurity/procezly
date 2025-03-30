@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { supabase } from "../../utils/supabaseClient";
 import {
   ClipboardList,
@@ -21,6 +22,7 @@ const Dashboard = () => {
 
   const [userName, setUserName] = useState("");
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const router = useRouter();
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -33,13 +35,8 @@ const Dashboard = () => {
     };
 
     const fetchData = async () => {
-      const {
-        data: user,
-        error: userError,
-      } = await supabase.auth.getUser();
-
-      if (userError) console.warn("User error:", userError);
-      if (!user?.user?.id) return;
+      const { data: user, error: userError } = await supabase.auth.getUser();
+      if (userError || !user?.user?.id) return;
 
       setUserName(user.user.email?.split("@")[0] || "there");
 
@@ -86,9 +83,24 @@ const Dashboard = () => {
       </p>
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 sm:gap-6 mt-6">
-        <StatCard icon={<ClipboardList size={24} />} title="Kamishibai Cards" value={dashboardData.totalCards} />
-        <StatCard icon={<Users size={24} className="text-indigo-600" />} title="Active Users" value={dashboardData.activeUsers} />
-        <StatCard icon={<ShieldCheck size={24} className="text-blue-600" />} title="Compliance Score" value={`${dashboardData.complianceScore}%`} />
+        <StatCard
+          icon={<ClipboardList size={24} />}
+          title="Kamishibai Cards"
+          value={dashboardData.totalCards}
+          onClick={() => router.push("/kamishibai")}
+        />
+        <StatCard
+          icon={<Users size={24} className="text-indigo-600" />}
+          title="Active Users"
+          value={dashboardData.activeUsers}
+          onClick={() => router.push("/settings")}
+        />
+        <StatCard
+          icon={<ShieldCheck size={24} className="text-blue-600" />}
+          title="Compliance Score"
+          value={`${dashboardData.complianceScore}%`}
+          onClick={() => router.push("/submissions")}
+        />
       </div>
 
       <div className="hidden">
@@ -105,19 +117,26 @@ const StatCard = ({
   icon,
   title,
   value,
+  onClick,
 }: {
   icon: React.ReactNode;
   title: string;
   value: string | number;
+  onClick: () => void;
 }) => {
   return (
-    <div className="bg-white px-4 py-3 sm:p-6 rounded-lg shadow-sm flex items-center space-x-4 border border-gray-200 hover:shadow-md transition">
+    <button
+      onClick={onClick}
+      className="w-full text-left bg-white px-4 py-3 sm:p-6 rounded-lg shadow-sm flex items-center space-x-4 border border-gray-200 hover:shadow-md transition"
+    >
       <div className="p-2 sm:p-3 bg-gray-100 rounded-full">{icon}</div>
       <div className="flex flex-col justify-center">
         <p className="text-xs sm:text-sm text-gray-600">{title}</p>
-        <p className="text-base sm:text-xl font-semibold text-gray-900">{value}</p>
+        <p className="text-base sm:text-xl font-semibold text-gray-900">
+          {value}
+        </p>
       </div>
-    </div>
+    </button>
   );
 };
 
