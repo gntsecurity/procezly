@@ -30,6 +30,7 @@ const Dashboard = () => {
   const [logHistory, setLogHistory] = useState<
     { action: string; timestamp: string }[]
   >([])
+  const [chartData, setChartData] = useState<number[]>([])
 
   const router = useRouter()
 
@@ -61,18 +62,9 @@ const Dashboard = () => {
       const orgId = roleData.organization_id
 
       const [cards, users, submissions, logs] = await Promise.all([
-        supabase
-          .from('kamishibai_cards')
-          .select('*')
-          .eq('organization_id', orgId),
-        supabase
-          .from('roles')
-          .select('user_id')
-          .eq('organization_id', orgId),
-        supabase
-          .from('submissions')
-          .select('id')
-          .eq('organization_id', orgId),
+        supabase.from('kamishibai_cards').select('*').eq('organization_id', orgId),
+        supabase.from('roles').select('user_id').eq('organization_id', orgId),
+        supabase.from('submissions').select('submitted_at').eq('organization_id', orgId),
         supabase
           .from('audit_logs')
           .select('action, timestamp')
@@ -88,6 +80,17 @@ const Dashboard = () => {
         .order('timestamp', { ascending: false })
         .limit(50)
 
+      const submissionTimestamps = submissions.data?.map((s) => s.submitted_at) || []
+      const past7 = Array(7).fill(0)
+
+      submissionTimestamps.forEach((ts) => {
+        const dayDiff = Math.floor(
+          (Date.now() - new Date(ts).getTime()) / (1000 * 60 * 60 * 24)
+        )
+        if (dayDiff >= 0 && dayDiff < 7) past7[6 - dayDiff]++
+      })
+
+      setChartData(past7)
       setLogHistory(fullLogs.data || [])
 
       setDashboardData({
@@ -165,6 +168,41 @@ const Dashboard = () => {
         </div>
       )}
 
+      {/* Chart block */}
+      <div className="mt-10 hidden xl:block">
+        <div className="bg-white border rounded-lg p-5 shadow-sm w-full max-w-lg">
+          <div className="flex items-center gap-4 mb-4">
+            <BarChart2 className="text-purple-600" size={28} />
+            <div>
+              <div className="text-gray-500 text-sm">Submissions This Week</div>
+            </div>
+          </div>
+
+          <svg width="100%" height="80" viewBox="0 0 210 80" className="text-purple-400">
+            {chartData.map((val, idx) => (
+              <rect
+                key={idx}
+                x={idx * 30}
+                y={80 - val * 8}
+                width="20"
+                height={val * 8}
+                rx="3"
+                className="fill-current"
+              />
+            ))}
+          </svg>
+
+          <div className="text-xs text-gray-500 mt-2 flex justify-between">
+            {['S', 'M', 'T', 'W', 'T', 'F', 'S'].map((d, i) => (
+              <span key={i} className="w-[30px] text-center">
+                {d}
+              </span>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Modal */}
       {modalOpen && (
         <div className="fixed inset-0 z-50 bg-black/40 flex items-center justify-center px-4">
           <div className="bg-white rounded-lg w-full max-w-2xl p-6 relative max-h-[80vh] overflow-y-auto">
@@ -193,7 +231,6 @@ const Dashboard = () => {
         <AlertTriangle />
         <CheckCircle />
         <FileText />
-        <BarChart2 />
       </div>
     </div>
   )
