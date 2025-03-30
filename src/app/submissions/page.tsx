@@ -35,6 +35,7 @@ const SubmissionsPage = () => {
   const [submissions, setSubmissions] = useState<Submission[]>([]);
   const [form, setForm] = useState({ card_id: "", status: "", notes: "" });
   const [loading, setLoading] = useState(true);
+  const [currentUserName, setCurrentUserName] = useState("Unknown");
 
   useEffect(() => {
     const init = async () => {
@@ -42,6 +43,7 @@ const SubmissionsPage = () => {
       if (!user?.user?.id) return;
       const uid = user.user.id;
       setUserId(uid);
+      setCurrentUserName(user.user.user_metadata?.full_name || user.user.email?.split("@")[0] || "Unknown");
 
       const { data: roleData } = await supabase
         .from("roles")
@@ -53,7 +55,7 @@ const SubmissionsPage = () => {
       setIsAdmin(roleData.role === "admin");
       setOrgId(roleData.organization_id);
 
-      const [{ data: cardData }, { data: userData }, { data: submissionData }] = await Promise.all([
+      const [{ data: cardData }, usersRes, { data: submissionData }] = await Promise.all([
         supabase.from("kamishibai_cards").select("id, uid").eq("organization_id", roleData.organization_id),
         supabase.auth.admin.listUsers(),
         supabase
@@ -63,9 +65,11 @@ const SubmissionsPage = () => {
           .order("submitted_at", { ascending: false }),
       ]);
 
+      const userList = usersRes?.users || [];
+
       const cardMap = Object.fromEntries((cardData || []).map((c) => [c.id, c.uid]));
       const userMap = Object.fromEntries(
-        (userData || []).map((u) => [
+        userList.map((u) => [
           u.id,
           u.user_metadata?.full_name || u.email?.split("@")[0] || "Unknown",
         ])
@@ -78,7 +82,7 @@ const SubmissionsPage = () => {
       }));
 
       setCards(cardData || []);
-      setUsers(userData || []);
+      setUsers(userList || []);
       setSubmissions(isAdmin ? withMeta : withMeta.filter((s) => s.user_id === uid));
       setLoading(false);
     };
