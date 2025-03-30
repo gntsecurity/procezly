@@ -35,7 +35,6 @@ const SubmissionsPage = () => {
   const [submissions, setSubmissions] = useState<Submission[]>([]);
   const [form, setForm] = useState({ card_id: "", status: "", notes: "" });
   const [loading, setLoading] = useState(true);
-  const [currentUserName, setCurrentUserName] = useState("Unknown");
 
   useEffect(() => {
     const init = async () => {
@@ -43,7 +42,6 @@ const SubmissionsPage = () => {
       if (!user?.user?.id) return;
       const uid = user.user.id;
       setUserId(uid);
-      setCurrentUserName(user.user.user_metadata?.full_name || user.user.email?.split("@")[0] || "Unknown");
 
       const { data: roleData } = await supabase
         .from("roles")
