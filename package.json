@@ -8,7 +8,7 @@
     "start": "next start"
   },
   "engines": {
-    "node": "20.10.0"
+    "node": ">=18.18.0"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.49.1",
