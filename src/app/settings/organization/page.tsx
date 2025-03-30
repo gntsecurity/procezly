@@ -1,195 +1,162 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { supabase } from '../utils/supabaseClient''
+import { supabase } from '../../../../utils/supabaseClient'
 import { useRouter } from 'next/navigation'
 
 export default function OrganizationSettings() {
-  const [orgId, setOrgId] = useState<string | null>(null)
-  const [orgCreated, setOrgCreated] = useState<string | null>(null)
-  const [users, setUsers] = useState<any[]>([])
-  const [auditLogs, setAuditLogs] = useState<any[]>([])
-  const [newUserEmail, setNewUserEmail] = useState('')
-  const [isAdmin, setIsAdmin] = useState(false)
-  const [currentUserId, setCurrentUserId] = useState<string | null>(null)
   const router = useRouter()
+  const [user, setUser] = useState<any>(null)
+  const [orgInfo, setOrgInfo] = useState<any>(null)
+  const [orgUsers, setOrgUsers] = useState<any[]>([])
+  const [email, setEmail] = useState('')
+  const [logs, setLogs] = useState<any[]>([])
 
   useEffect(() => {
-    const loadData = async () => {
-      const { data: user, error: userError } = await supabase.auth.getUser()
-      if (userError || !user?.user?.id) return router.push('/login')
+    const fetchData = async () => {
+      const {
+        data: { user },
+        error: userError,
+      } = await supabase.auth.getUser()
+      if (userError || !user) return router.push('/login')
+      setUser(user)
 
-      setCurrentUserId(user.user.id)
-
-      const { data: roleData } = await supabase
+      const { data: roles } = await supabase
         .from('roles')
         .select('organization_id, role')
-        .eq('user_id', user.user.id)
-        .limit(1)
-        .single()
+        .eq('user_id', user.id)
+        .maybeSingle()
 
-      if (!roleData) return router.push('/login')
+      if (!roles) return
 
-      setOrgId(roleData.organization_id)
-      setIsAdmin(roleData.role === 'admin')
-
-      const { data: orgMeta } = await supabase
+      const { data: org } = await supabase
         .from('organizations')
-        .select('created_at')
-        .eq('id', roleData.organization_id)
-        .single()
+        .select('id, created_at')
+        .eq('id', roles.organization_id)
+        .maybeSingle()
 
-      setOrgCreated(orgMeta?.created_at || null)
-
-      const { data: userList } = await supabase
+      const { data: users } = await supabase
         .from('org_users')
         .select('*')
-        .eq('organization_id', roleData.organization_id)
+        .eq('organization_id', roles.organization_id)
 
-      setUsers(userList || [])
+      const { count: cardsCount } = await supabase
+        .from('kamishibai_cards')
+        .select('*', { count: 'exact', head: true })
+        .eq('organization_id', roles.organization_id)
 
-      const { data: logData } = await supabase
+      const { count: subsCount } = await supabase
+        .from('submissions')
+        .select('*', { count: 'exact', head: true })
+        .eq('organization_id', roles.organization_id)
+
+      const { data: auditLog } = await supabase
         .from('audit_logs')
-        .select('*')
-        .eq('organization_id', roleData.organization_id)
-        .order('timestamp', { ascending: false })
+        .select('event, created_at')
+        .eq('organization_id', roles.organization_id)
+        .order('created_at', { ascending: false })
         .limit(5)
 
-      setAuditLogs(logData || [])
+      setOrgInfo({
+        id: org?.id,
+        created_at: org?.created_at,
+        cards: cardsCount || 0,
+        submissions: subsCount || 0,
+        role: roles.role,
+      })
+
+      setOrgUsers(users || [])
+      setLogs(auditLog || [])
     }
 
-    loadData()
+    fetchData()
   }, [router])
 
-  const handleAddUser = async () => {
-    if (!newUserEmail || !orgId) return
-
-    const { data: userData, error: fetchError } = await supabase
-      .auth.admin.listUsers()
-
-    if (fetchError) return
-
-    const userToAdd = userData.users.find((u) => u.email === newUserEmail)
-    if (!userToAdd) return
-
-    const { error: insertRolesError } = await supabase
+  const promoteUser = async (targetId: string) => {
+    if (!user || !orgInfo) return
+    await supabase
       .from('roles')
-      .insert([
-        {
-          user_id: userToAdd.id,
-          organization_id: orgId,
-          role: 'user',
-        },
-      ])
-
-    const { error: insertOrgUserError } = await supabase
-      .from('org_users')
-      .insert([
-        {
-          user_id: userToAdd.id,
-          email: userToAdd.email,
-          organization_id: orgId,
-          role: 'user',
-        },
-      ])
-
-    if (!insertRolesError && !insertOrgUserError) {
-      setNewUserEmail('')
-      const { data: refreshedUsers } = await supabase
-        .from('org_users')
-        .select('*')
-        .eq('organization_id', orgId)
-
-      setUsers(refreshedUsers || [])
-    }
+      .update({ role: 'admin' })
+      .eq('user_id', targetId)
+      .eq('organization_id', orgInfo.id)
+    location.reload()
   }
 
-  const handleRoleChange = async (user_id: string, role: string) => {
-    if (user_id === currentUserId) return
-    if (!orgId) return
+  const addUser = async () => {
+    if (!email || !orgInfo) return
 
-    await supabase
-      .from('roles')
-      .update({ role })
-      .eq('user_id', user_id)
-      .eq('organization_id', orgId)
-
-    await supabase
+    const { data: userLookup } = await supabase
       .from('org_users')
-      .update({ role })
-      .eq('user_id', user_id)
-      .eq('organization_id', orgId)
+      .select('user_id')
+      .eq('email', email)
+      .maybeSingle()
 
-    const { data: refreshedUsers } = await supabase
-      .from('org_users')
-      .select('*')
-      .eq('organization_id', orgId)
+    if (userLookup) return
 
-    setUsers(refreshedUsers || [])
+    const { data: newUser } = await supabase.auth.admin.createUser({
+      email,
+      email_confirm: true,
+    })
+
+    if (!newUser?.user?.id) return
+
+    await supabase.from('roles').insert({
+      user_id: newUser.user.id,
+      organization_id: orgInfo.id,
+      role: 'user',
+    })
+
+    location.reload()
   }
 
   return (
-    <div className="max-w-2xl mx-auto p-4">
-      <a href="/settings" className="text-sm text-blue-600 underline block mb-4">← Back to Settings</a>
-      <h2 className="text-xl font-semibold mb-2">Organization Settings</h2>
-      {orgId && (
-        <div className="text-sm mb-4">
-          <p><strong>Organization ID:</strong> {orgId}</p>
-          <p><strong>Created:</strong> {orgCreated}</p>
+    <div className="p-6">
+      <a href="/settings" className="text-sm text-blue-500 underline block mb-4">
+        ← Back to Settings
+      </a>
+      <h1 className="text-xl font-semibold mb-4">Organization Settings</h1>
+      {orgInfo && (
+        <div className="mb-6">
+          <p><strong>Organization ID:</strong> {orgInfo.id}</p>
+          <p><strong>Created:</strong> {new Date(orgInfo.created_at).toLocaleString()}</p>
+          <p><strong>Kamishibai Cards:</strong> {orgInfo.cards}</p>
+          <p><strong>Submissions:</strong> {orgInfo.submissions}</p>
         </div>
       )}
 
-      <h3 className="font-semibold mt-6 mb-2">Users</h3>
-      {isAdmin && (
-        <div className="flex gap-2 mb-4">
+      <h2 className="text-md font-semibold mb-2">Users</h2>
+      {orgInfo?.role === 'admin' && (
+        <div className="flex gap-2 items-center mb-4">
           <input
-            type="email"
-            value={newUserEmail}
-            onChange={(e) => setNewUserEmail(e.target.value)}
-            className="border px-2 py-1 rounded w-full"
-            placeholder="Enter user email"
+            className="border rounded px-2 py-1 text-sm"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            placeholder="Email"
           />
-          <button
-            onClick={handleAddUser}
-            className="bg-blue-600 text-white px-4 py-1 rounded"
-          >
+          <button className="text-blue-500 text-sm" onClick={addUser}>
             Add User
           </button>
         </div>
       )}
 
-      <div className="space-y-2">
-        {users.map((user) => (
-          <div
-            key={user.user_id}
-            className="flex justify-between items-center border px-3 py-2 rounded"
-          >
-            <div>
-              <div className="text-sm">{user.email}</div>
-              <div className="text-xs text-gray-600">{user.role}</div>
-            </div>
-            {isAdmin && user.user_id !== currentUserId && (
-              <select
-                value={user.role}
-                onChange={(e) => handleRoleChange(user.user_id, e.target.value)}
-                className="border px-2 py-1 rounded text-sm"
-              >
-                <option value="user">User</option>
-                <option value="admin">Admin</option>
-              </select>
-            )}
-          </div>
-        ))}
-      </div>
+      {orgUsers.map((u) => (
+        <div key={u.user_id} className="text-sm mb-1 flex gap-2 items-center">
+          <span>{u.email}</span>
+          <span className="text-gray-500">({u.role})</span>
+          {orgInfo?.role === 'admin' && u.user_id !== user?.id && u.role !== 'admin' && (
+            <button className="text-xs text-blue-600" onClick={() => promoteUser(u.user_id)}>
+              Make Admin
+            </button>
+          )}
+        </div>
+      ))}
 
-      <h3 className="font-semibold mt-6 mb-2">Audit Log (Last 5)</h3>
-      <div className="text-sm space-y-1">
-        {auditLogs.map((log) => (
-          <div key={log.id}>
-            {log.timestamp} - {log.description}
-          </div>
-        ))}
-      </div>
+      <h2 className="text-md font-semibold mt-6 mb-2">Audit Log (Last 5)</h2>
+      {logs.map((log, idx) => (
+        <div key={idx} className="text-sm text-gray-700">
+          {new Date(log.created_at).toLocaleString()} — {log.event}
+        </div>
+      ))}
     </div>
   )
 }
