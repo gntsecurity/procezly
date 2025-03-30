@@ -8,8 +8,8 @@
     "start": "next start"
   },
   "engines": {
-  "node": "20.10.0"
-},
+    "node": ">=20.10.0"
+  },
   "dependencies": {
     "@supabase/supabase-js": "^2.49.1",
     "framer-motion": "^12.5.0",
@@ -38,12 +38,7 @@
   },
   "description": "Procezly - AI-powered compliance automation and Kamishibai Auditing.",
   "main": "index.js",
-  "keywords": [
-    "compliance",
-    "audit",
-    "AI",
-    "automation"
-  ],
+  "keywords": ["compliance", "audit", "AI", "automation"],
   "author": "GNT Security",
   "license": "ISC"
 }
