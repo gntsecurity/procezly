@@ -2,19 +2,39 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
+import QRCode from "qrcode";
 import { supabase } from "../../../utils/supabaseClient";
 import { createClient } from "@supabase/supabase-js";
-import QRCode from "qrcode";
 
 const adminClient = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 );
 
+type Org = {
+  id: string;
+  name: string;
+  timezone: string;
+  created_at: string;
+};
+
+type RoleUser = {
+  user_id: string;
+  role: string;
+  email: string;
+};
+
+type AuditLog = {
+  id: string;
+  timestamp: string;
+  action: string;
+};
+
 const OrganizationSettingsPage = () => {
-  const [org, setOrg] = useState<any>(null);
-  const [users, setUsers] = useState<any[]>([]);
-  const [logs, setLogs] = useState<any[]>([]);
+  const [org, setOrg] = useState<Org | null>(null);
+  const [users, setUsers] = useState<RoleUser[]>([]);
+  const [logs, setLogs] = useState<AuditLog[]>([]);
   const [stats, setStats] = useState({ cards: 0, submissions: 0 });
   const [isAdmin, setIsAdmin] = useState(false);
   const [emailInput, setEmailInput] = useState("");
@@ -118,7 +138,7 @@ const OrganizationSettingsPage = () => {
       .from("roles")
       .update({ role: newRole })
       .eq("user_id", user_id)
-      .eq("organization_id", org.id);
+      .eq("organization_id", org?.id);
     fetchData();
   };
 
@@ -150,7 +170,15 @@ const OrganizationSettingsPage = () => {
           <div><strong>Kamishibai Cards:</strong> {stats.cards}</div>
           <div><strong>Submissions:</strong> {stats.submissions}</div>
           <div><strong>Invite Link:</strong> <a href={inviteLink} className="text-blue-600 underline">{inviteLink}</a></div>
-          {qrUrl && <img src={qrUrl} alt="QR Code" className="mt-2" />}
+          {qrUrl && (
+            <Image
+              src={qrUrl}
+              alt="QR Code"
+              width={100}
+              height={100}
+              className="mt-2"
+            />
+          )}
         </div>
       </div>
 
