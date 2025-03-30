@@ -1,4 +1,4 @@
-export const onRequestPost: PagesFunction = async ({ request }) => {
+export const onRequestPost = async ({ request }: { request: Request }) => {
   try {
     const body = await request.json()
     const {
