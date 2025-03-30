@@ -2,12 +2,11 @@
 
 import { useEffect, useState } from 'react'
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
-import { Database } from '@/types/supabase'
-import { Submission, Card } from '@/types/types'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { Database } from '../../types/supabase'
+import { Submission, Card } from '../../types/types'
+import { Button } from '../../components/ui/button'
+import { Input } from '../../components/ui/input'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../components/ui/select'
 
 type User = {
   id: string
@@ -30,7 +29,6 @@ export default function SubmissionsPage() {
       const {
         data: { user },
       } = await supabase.auth.getUser()
-
       if (!user) return
 
       setUid(user.id)
@@ -59,7 +57,6 @@ export default function SubmissionsPage() {
         : (submissionsData || []).filter((s) => s.user_id === user.id)
 
       const { data: usersData } = await supabase.auth.admin.listUsers()
-
       const userList: User[] = usersData.users.map((u) => ({
         id: u.id,
         display_name: u.user_metadata?.display_name || 'Unknown',
@@ -168,5 +165,3 @@ export default function SubmissionsPage() {
     </div>
   )
 }
-
-export default SubmissionsPage;
