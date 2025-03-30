@@ -1,22 +1,14 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useDrop, useDrag, DndProvider } from "react-dnd";
+import { HTML5Backend } from "react-dnd-html5-backend";
 import { supabase } from "../../utils/supabaseClient";
-import { DndContext, closestCenter } from "@dnd-kit/core";
-import {
-  arrayMove,
-  SortableContext,
-  verticalListSortingStrategy,
-} from "@dnd-kit/sortable";
-import { restrictToVerticalAxis } from "@dnd-kit/modifiers";
-import { useDroppable, useSortable } from "@dnd-kit/sortable";
-import { CSS } from "@dnd-kit/utilities";
 import { GripVertical } from "lucide-react";
 
 interface Card {
   id: string;
   uid: string;
-  title?: string;
   audit_phase: string;
 }
 
@@ -61,84 +53,85 @@ const SchedulerPage = () => {
     init();
   }, []);
 
-  const handleDragEnd = async (event: any) => {
-    const { active, over } = event;
-    if (!over || active.id === over.id) return;
-
-    let sourcePhase = "";
-    let movedCard: Card | undefined;
-
-    for (const phase of phases) {
-      const idx = cardsByPhase[phase].findIndex((c) => c.id === active.id);
-      if (idx > -1) {
-        sourcePhase = phase;
-        movedCard = cardsByPhase[phase][idx];
-        break;
-      }
-    }
-
-    if (!movedCard) return;
-
-    const updated = { ...cardsByPhase };
-    updated[sourcePhase] = updated[sourcePhase].filter((c) => c.id !== active.id);
-    updated[over.id].push(movedCard);
-    setCardsByPhase(updated);
+  const moveCard = async (card: Card, toPhase: string) => {
+    if (card.audit_phase === toPhase) return;
 
     await supabase
       .from("kamishibai_cards")
-      .update({ audit_phase: over.id })
-      .eq("id", movedCard.id);
+      .update({ audit_phase: toPhase })
+      .eq("id", card.id);
+
+    setCardsByPhase((prev) => {
+      const next = { ...prev };
+      next[card.audit_phase] = next[card.audit_phase].filter((c) => c.id !== card.id);
+      next[toPhase] = [...next[toPhase], { ...card, audit_phase: toPhase }];
+      return next;
+    });
   };
 
   return (
-    <div className="px-4 pt-6 sm:px-6 w-full max-w-6xl mx-auto">
-      <h1 className="text-2xl font-semibold text-gray-900 mb-6">Audit Scheduler</h1>
-      <DndContext
-        collisionDetection={closestCenter}
-        modifiers={[restrictToVerticalAxis]}
-        onDragEnd={handleDragEnd}
-      >
+    <DndProvider backend={HTML5Backend}>
+      <div className="px-4 pt-6 sm:px-6 w-full max-w-6xl mx-auto">
+        <h1 className="text-2xl font-semibold text-gray-900 mb-6">Audit Scheduler</h1>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
           {phases.map((phase) => (
-            <PhaseColumn key={phase} id={phase} cards={cardsByPhase[phase]} />
+            <PhaseColumn
+              key={phase}
+              phase={phase}
+              cards={cardsByPhase[phase]}
+              onDropCard={moveCard}
+            />
           ))}
         </div>
-      </DndContext>
-    </div>
+      </div>
+    </DndProvider>
   );
 };
 
-const PhaseColumn = ({ id, cards }: { id: string; cards: Card[] }) => {
-  const { setNodeRef } = useDroppable({ id });
-
-  return (
-    <div ref={setNodeRef} className="bg-white border border-gray-200 rounded-lg p-4 min-h-[300px]">
-      <h2 className="text-lg font-semibold mb-3 text-gray-700">{id}</h2>
-      <SortableContext items={cards} strategy={verticalListSortingStrategy}>
-        {cards.map((card) => (
-          <CardItem key={card.id} id={card.id} uid={card.uid} />
-        ))}
-      </SortableContext>
-    </div>
-  );
-};
-
-const CardItem = ({ id, uid }: { id: string; uid: string }) => {
-  const { attributes, listeners, setNodeRef, transform, transition } = useSortable({ id });
-  const style = {
-    transform: CSS.Transform.toString(transform),
-    transition,
-  };
+const PhaseColumn = ({
+  phase,
+  cards,
+  onDropCard,
+}: {
+  phase: string;
+  cards: Card[];
+  onDropCard: (card: Card, toPhase: string) => void;
+}) => {
+  const [{ isOver }, dropRef] = useDrop({
+    accept: "CARD",
+    drop: (item: Card) => onDropCard(item, phase),
+    collect: (monitor) => ({
+      isOver: monitor.isOver(),
+    }),
+  });
 
   return (
     <div
-      ref={setNodeRef}
-      style={style}
-      {...attributes}
-      {...listeners}
+      ref={dropRef}
+      className={`bg-white border border-gray-200 rounded-lg p-4 min-h-[300px] transition ${
+        isOver ? "bg-blue-50" : ""
+      }`}
+    >
+      <h2 className="text-lg font-semibold mb-3 text-gray-700">{phase}</h2>
+      {cards.map((card) => (
+        <CardItem key={card.id} card={card} />
+      ))}
+    </div>
+  );
+};
+
+const CardItem = ({ card }: { card: Card }) => {
+  const [, dragRef] = useDrag({
+    type: "CARD",
+    item: card,
+  });
+
+  return (
+    <div
+      ref={dragRef}
       className="bg-gray-100 border border-gray-300 rounded px-3 py-2 mb-2 flex items-center justify-between"
     >
-      <span className="text-sm font-medium text-gray-800">{uid}</span>
+      <span className="text-sm font-medium text-gray-800">{card.uid}</span>
       <GripVertical className="text-gray-500" size={16} />
     </div>
   );
