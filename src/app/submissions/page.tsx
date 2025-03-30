@@ -1,136 +1,124 @@
-'use client'
+"use client";
 
-import { useEffect, useState } from 'react'
-import { supabase } from '../../utils/supabaseClient'
-import { CheckCircle, Loader, Send } from 'lucide-react'
+import { useEffect, useState } from "react";
+import { supabase } from "../../utils/supabaseClient";
+import { CheckCircle, Loader, Send } from "lucide-react";
 
 interface Submission {
-  id?: string
-  card_id: string
-  status: string
-  notes: string
-  submitted_at?: string
-  user_id: string
-  card_uid?: string
-  user_email?: string
+  id?: string;
+  card_id: string;
+  status: string;
+  notes: string;
+  submitted_at?: string;
+  user_id: string;
+  card_uid?: string;
+  user_display_name?: string;
 }
 
 interface Card {
-  id: string
-  uid: string
+  id: string;
+  uid: string;
 }
 
 interface User {
-  id: string
-  email: string
+  id: string;
   user_metadata?: {
-    full_name?: string
-    display_name?: string
-  }
+    display_name?: string;
+  };
 }
 
 const SubmissionsPage = () => {
-  const [isAdmin, setIsAdmin] = useState(false)
-  const [orgId, setOrgId] = useState<string | null>(null)
-  const [userId, setUserId] = useState<string | null>(null)
-  const [cards, setCards] = useState<Card[]>([])
-  const [users, setUsers] = useState<User[]>([])
-  const [submissions, setSubmissions] = useState<Submission[]>([])
-  const [form, setForm] = useState({ card_id: '', status: '', notes: '' })
-  const [loading, setLoading] = useState(true)
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [orgId, setOrgId] = useState<string | null>(null);
+  const [userId, setUserId] = useState<string | null>(null);
+  const [cards, setCards] = useState<Card[]>([]);
+  const [users, setUsers] = useState<User[]>([]);
+  const [submissions, setSubmissions] = useState<Submission[]>([]);
+  const [form, setForm] = useState({ card_id: "", status: "", notes: "" });
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const init = async () => {
-      const { data: user } = await supabase.auth.getUser()
-      if (!user?.user?.id) return
-      const uid = user.user.id
-      setUserId(uid)
+      const { data: user } = await supabase.auth.getUser();
+      if (!user?.user?.id) return;
+      const uid = user.user.id;
+      setUserId(uid);
 
       const { data: roleData } = await supabase
-        .from('roles')
-        .select('role, organization_id')
-        .eq('user_id', uid)
-        .single()
+        .from("roles")
+        .select("role, organization_id")
+        .eq("user_id", uid)
+        .single();
 
-      if (!roleData) return
-      setIsAdmin(roleData.role === 'admin')
-      setOrgId(roleData.organization_id)
+      if (!roleData) return;
+      setIsAdmin(roleData.role === "admin");
+      setOrgId(roleData.organization_id);
 
-      const [{ data: cardData }, { data: usersRes }, { data: submissionData }] = await Promise.all([
-        supabase.from('kamishibai_cards').select('id, uid').eq('organization_id', roleData.organization_id),
+      const [{ data: cardData }, { data: userData }, { data: submissionData }] = await Promise.all([
+        supabase.from("kamishibai_cards").select("id, uid").eq("organization_id", roleData.organization_id),
         supabase.auth.admin.listUsers(),
         supabase
-          .from('submissions')
-          .select('*')
-          .eq('organization_id', roleData.organization_id)
-          .order('submitted_at', { ascending: false }),
-      ])
+          .from("submissions")
+          .select("*")
+          .eq("organization_id", roleData.organization_id)
+          .order("submitted_at", { ascending: false }),
+      ]);
 
-      const userList: User[] = 'users' in usersRes ? usersRes.users : []
-      const cardMap = Object.fromEntries((cardData || []).map((c) => [c.id, c.uid]))
+      const cardMap = Object.fromEntries((cardData || []).map((c) => [c.id, c.uid]));
       const userMap = Object.fromEntries(
-        userList.map((u) => [
+        (userData?.users || []).map((u) => [
           u.id,
-          u.user_metadata?.display_name ||
-            u.user_metadata?.full_name ||
-            u.email?.split('@')[0] ||
-            'Unknown',
+          u.user_metadata?.display_name || "Unknown",
         ])
-      )
+      );
 
       const withMeta = (submissionData || []).map((s) => ({
         ...s,
-        card_uid: cardMap[s.card_id] || 'Unknown',
-        user_email: userMap[s.user_id] || 'Unknown',
-      }))
+        card_uid: cardMap[s.card_id] || "Unknown",
+        user_display_name: userMap[s.user_id] || "Unknown",
+      }));
 
-      setCards(cardData || [])
-      setUsers(userList)
-      setSubmissions(isAdmin ? withMeta : withMeta.filter((s) => s.user_id === uid))
-      setLoading(false)
-    }
+      setCards(cardData || []);
+      setUsers(userData?.users || []);
+      setSubmissions(isAdmin ? withMeta : withMeta.filter((s) => s.user_id === uid));
+      setLoading(false);
+    };
 
-    init()
-  }, [isAdmin])
+    init();
+  }, []);
 
   const handleSubmit = async () => {
-    if (!orgId || !userId) return
+    if (!orgId || !userId) return;
 
     const payload = {
       ...form,
       organization_id: orgId,
       user_id: userId,
       submitted_at: new Date().toISOString(),
-    }
+    };
 
-    await supabase.from('submissions').insert(payload)
-    setForm({ card_id: '', status: '', notes: '' })
+    await supabase.from("submissions").insert(payload);
+    setForm({ card_id: "", status: "", notes: "" });
 
     const { data: updated } = await supabase
-      .from('submissions')
-      .select('*')
-      .eq('organization_id', orgId)
-      .order('submitted_at', { ascending: false })
+      .from("submissions")
+      .select("*")
+      .eq("organization_id", orgId)
+      .order("submitted_at", { ascending: false });
 
-    const cardMap = Object.fromEntries(cards.map((c) => [c.id, c.uid]))
+    const cardMap = Object.fromEntries(cards.map((c) => [c.id, c.uid]));
     const userMap = Object.fromEntries(
-      users.map((u) => [
-        u.id,
-        u.user_metadata?.display_name ||
-          u.user_metadata?.full_name ||
-          u.email?.split('@')[0] ||
-          'Unknown',
-      ])
-    )
+      users.map((u) => [u.id, u.user_metadata?.display_name || "Unknown"])
+    );
 
     const withMeta = (updated || []).map((s) => ({
       ...s,
-      card_uid: cardMap[s.card_id] || 'Unknown',
-      user_email: userMap[s.user_id] || 'Unknown',
-    }))
+      card_uid: cardMap[s.card_id] || "Unknown",
+      user_display_name: userMap[s.user_id] || "Unknown",
+    }));
 
-    setSubmissions(isAdmin ? withMeta : withMeta.filter((s) => s.user_id === userId))
-  }
+    setSubmissions(isAdmin ? withMeta : withMeta.filter((s) => s.user_id === userId));
+  };
 
   if (loading) {
     return (
@@ -138,7 +126,7 @@ const SubmissionsPage = () => {
         <Loader className="animate-spin mr-2" />
         Loading...
       </div>
-    )
+    );
   }
 
   return (
@@ -207,7 +195,7 @@ const SubmissionsPage = () => {
                 <td className="px-4 py-2 text-gray-900">{s.card_uid}</td>
                 <td className="px-4 py-2 text-gray-900">{s.status}</td>
                 <td className="px-4 py-2 text-gray-900">{s.notes}</td>
-                <td className="px-4 py-2 text-gray-900">{s.user_email}</td>
+                <td className="px-4 py-2 text-gray-900">{s.user_display_name}</td>
                 <td className="px-4 py-2 text-gray-900">
                   {new Date(s.submitted_at!).toLocaleString()}
                 </td>
@@ -228,7 +216,7 @@ const SubmissionsPage = () => {
         <CheckCircle />
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default SubmissionsPage
+export default SubmissionsPage;
