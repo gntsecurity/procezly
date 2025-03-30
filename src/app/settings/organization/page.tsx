@@ -5,7 +5,7 @@ import { supabase } from '../../../utils/supabaseClient'
 import Link from 'next/link'
 import { Pencil, X } from 'lucide-react'
 
-type Role = 'admin' | 'user' //push
+type Role = 'admin' | 'user'
 
 interface OrgUser {
   user_id: string
