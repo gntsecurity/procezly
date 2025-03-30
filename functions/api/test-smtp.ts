@@ -1,9 +1,9 @@
-export const onRequestPost: PagesFunction = async (context) => {
+export const onRequestPost: PagesFunction = async ({ request }) => {
   try {
-    const body = await context.request.json()
+    const body = await request.json()
     const { host, port, username, password, from_email, secure } = body
 
-    const testResult = await fetch('https://api.smtp2go.com/v3/email/send', {
+    const res = await fetch('https://api.smtp2go.com/v3/email/send', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -20,9 +20,10 @@ export const onRequestPost: PagesFunction = async (context) => {
       }),
     })
 
-    if (!testResult.ok) {
-      const err = await testResult.json()
-      return new Response(JSON.stringify({ success: false, error: err }), { status: 500 })
+    const result = await res.json()
+
+    if (!res.ok || !result.success) {
+      return new Response(JSON.stringify({ success: false, error: result }), { status: 500 })
     }
 
     return new Response(JSON.stringify({ success: true }), { status: 200 })
