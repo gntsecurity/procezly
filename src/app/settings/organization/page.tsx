@@ -1,8 +1,7 @@
 'use client'
 
-import { useEffect, useState, FormEvent } from 'react'
+import { useEffect, useState } from 'react'
 import { supabase } from '../../../utils/supabaseClient'
-import { useRouter } from 'next/navigation'
 
 type Role = 'admin' | 'user'
 
@@ -13,42 +12,37 @@ interface OrgUser {
   role: Role
 }
 
-interface RoleRow {
-  user_id: string
-  role: Role
-}
-
 export default function OrganizationSettings() {
-  const router = useRouter()
   const [users, setUsers] = useState<OrgUser[]>([])
-  const [roles, setRoles] = useState<RoleRow[]>([])
   const [currentUserId, setCurrentUserId] = useState<string>('')
 
   useEffect(() => {
     const load = async () => {
-      const { data: sessionData } = await supabase.auth.getSession()
-      const userId = sessionData?.session?.user.id
-      setCurrentUserId(userId || '')
+      const {
+        data: { session },
+      } = await supabase.auth.getSession()
+      const userId = session?.user.id || ''
+      setCurrentUserId(userId)
 
-      const { data: userData } = await supabase.from('org_users').select('*')
-      const { data: roleData } = await supabase.from('roles').select('user_id, role')
-
-      if (userData) setUsers(userData)
-      if (roleData) setRoles(roleData)
+      const { data } = await supabase.from('org_users').select('*')
+      if (data) setUsers(data as OrgUser[])
     }
 
     load()
   }, [])
 
   const updateRole = async (userId: string, newRole: Role) => {
-    await supabase.from('roles').update({ role: newRole }).eq('user_id', userId)
-    setRoles((prev) =>
-      prev.map((r) => (r.user_id === userId ? { ...r, role: newRole } : r))
+    await supabase
+      .from('roles')
+      .update({ role: newRole })
+      .eq('user_id', userId)
+
+    setUsers((prev) =>
+      prev.map((u) =>
+        u.user_id === userId ? { ...u, role: newRole } : u
+      )
     )
   }
-
-  const getUserRole = (userId: string): Role | undefined =>
-    roles.find((r) => r.user_id === userId)?.role
 
   return (
     <div className="p-6">
@@ -66,10 +60,10 @@ export default function OrganizationSettings() {
               <td className="border px-4 py-2">{user.email}</td>
               <td className="border px-4 py-2">
                 {user.user_id === currentUserId ? (
-                  getUserRole(user.user_id)
+                  user.role
                 ) : (
                   <select
-                    value={getUserRole(user.user_id)}
+                    value={user.role}
                     onChange={(e) =>
                       updateRole(user.user_id, e.target.value as Role)
                     }
