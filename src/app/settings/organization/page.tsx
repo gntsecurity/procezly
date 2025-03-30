@@ -9,8 +9,7 @@ type Org = {
   created_at: string;
 };
 
-type User = {
-  id: string;
+type OrgUser = {
   user_id: string;
   email: string;
   role: string;
@@ -24,7 +23,7 @@ type AuditLog = {
 
 export default function OrganizationSettings() {
   const [org, setOrg] = useState<Org | null>(null);
-  const [users, setUsers] = useState<User[]>([]);
+  const [users, setUsers] = useState<OrgUser[]>([]);
   const [logs, setLogs] = useState<AuditLog[]>([]);
   const [stats, setStats] = useState({ cards: 0, submissions: 0 });
   const [updatingId, setUpdatingId] = useState<string | null>(null);
@@ -55,26 +54,12 @@ export default function OrganizationSettings() {
 
       setOrg(org);
 
-      const { data: roleRows } = await supabase
-        .from('roles')
-        .select('id, user_id, role')
+      const { data: orgUsers } = await supabase
+        .from('org_users')
+        .select('user_id, email, role')
         .eq('organization_id', orgId);
 
-      const userIds = roleRows?.map(r => r.user_id) || [];
-
-      const { data: userRows } = await supabase
-        .from('users_view')
-        .select('id, email')
-        .in('id', userIds);
-
-      const mergedUsers = roleRows?.map(role => ({
-        id: role.id,
-        user_id: role.user_id,
-        role: role.role,
-        email: userRows?.find(u => u.id === role.user_id)?.email || '',
-      })) ?? [];
-
-      setUsers(mergedUsers);
+      setUsers(orgUsers || []);
 
       const { data: audit } = await supabase
         .from('audit_logs')
@@ -104,11 +89,11 @@ export default function OrganizationSettings() {
     load();
   }, []);
 
-  const toggleRole = async (id: string, current: string) => {
-    const newRole = current === 'admin' ? 'user' : 'admin';
-    setUpdatingId(id);
-    await supabase.from('roles').update({ role: newRole }).eq('id', id);
-    setUsers(users.map(u => (u.id === id ? { ...u, role: newRole } : u)));
+  const toggleRole = async (user_id: string, currentRole: string) => {
+    const newRole = currentRole === 'admin' ? 'user' : 'admin';
+    setUpdatingId(user_id);
+    await supabase.from('roles').update({ role: newRole }).eq('user_id', user_id);
+    setUsers(users.map(u => (u.user_id === user_id ? { ...u, role: newRole } : u)));
     setUpdatingId(null);
   };
 
@@ -131,9 +116,9 @@ export default function OrganizationSettings() {
       <div className="mt-6">
         <h3 className="font-semibold mb-2">Users</h3>
         <ul className="space-y-2">
-          {users.map(u => (
+          {users.map((u) => (
             <li
-              key={u.id}
+              key={u.user_id}
               className="flex justify-between items-center border p-2 rounded"
             >
               <div>
@@ -142,8 +127,8 @@ export default function OrganizationSettings() {
               </div>
               {u.user_id !== currentUserId && (
                 <button
-                  onClick={() => toggleRole(u.id, u.role)}
-                  disabled={updatingId === u.id}
+                  onClick={() => toggleRole(u.user_id, u.role)}
+                  disabled={updatingId === u.user_id}
                   className="text-sm text-blue-600 underline"
                 >
                   Make {u.role === 'admin' ? 'User' : 'Admin'}
