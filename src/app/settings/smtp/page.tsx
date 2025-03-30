@@ -76,7 +76,74 @@ const SmtpSettingsPage = () => {
       <h1 className="text-2xl font-semibold text-gray-900 mb-6">SMTP Settings</h1>
 
       <div className="bg-white border border-gray-200 rounded-lg p-6 space-y-4">
-        {/* form fields truncated for brevity — same as previous version */}
+        <label className="block">
+          <span className="block mb-1 text-sm text-gray-700">SMTP Host</span>
+          <input
+            type="text"
+            className="w-full border px-3 py-2 rounded"
+            value={form.host}
+            onChange={(e) => setForm({ ...form, host: e.target.value })}
+          />
+        </label>
+
+        <label className="block">
+          <span className="block mb-1 text-sm text-gray-700">Port</span>
+          <input
+            type="number"
+            className="w-full border px-3 py-2 rounded"
+            value={form.port}
+            onChange={(e) => setForm({ ...form, port: parseInt(e.target.value) })}
+          />
+        </label>
+
+        <label className="block">
+          <span className="block mb-1 text-sm text-gray-700">Username</span>
+          <input
+            type="text"
+            className="w-full border px-3 py-2 rounded"
+            value={form.username}
+            onChange={(e) => setForm({ ...form, username: e.target.value })}
+          />
+        </label>
+
+        <label className="block">
+          <span className="block mb-1 text-sm text-gray-700">Password</span>
+          <input
+            type="password"
+            className="w-full border px-3 py-2 rounded"
+            value={form.password}
+            onChange={(e) => setForm({ ...form, password: e.target.value })}
+          />
+        </label>
+
+        <label className="block">
+          <span className="block mb-1 text-sm text-gray-700">From Email</span>
+          <input
+            type="email"
+            className="w-full border px-3 py-2 rounded"
+            value={form.from_email}
+            onChange={(e) => setForm({ ...form, from_email: e.target.value })}
+          />
+        </label>
+
+        <label className="flex items-center gap-2 mt-2">
+          <input
+            type="checkbox"
+            checked={form.secure}
+            onChange={(e) => setForm({ ...form, secure: e.target.checked })}
+          />
+          <span className="text-sm text-gray-700">Use secure connection (SSL/TLS)</span>
+        </label>
+
+        <div className="pt-4">
+          <button
+            onClick={handleSave}
+            disabled={saving}
+            className="px-5 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+          >
+            {saving ? "Saving..." : "Save Settings"}
+          </button>
+        </div>
       </div>
     </div>
   );

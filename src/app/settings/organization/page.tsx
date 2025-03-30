@@ -75,7 +75,35 @@ const OrganizationSettingsPage = () => {
       <h1 className="text-2xl font-semibold text-gray-900 mb-6">Organization Settings</h1>
 
       <div className="bg-white border border-gray-200 rounded-lg p-6 space-y-4">
-        {/* form fields as before */}
+        <label className="block">
+          <span className="block mb-1 text-sm text-gray-700">Organization Name</span>
+          <input
+            type="text"
+            className="w-full border px-3 py-2 rounded"
+            value={form.name}
+            onChange={(e) => setForm({ ...form, name: e.target.value })}
+          />
+        </label>
+
+        <label className="block">
+          <span className="block mb-1 text-sm text-gray-700">Timezone</span>
+          <input
+            type="text"
+            className="w-full border px-3 py-2 rounded"
+            value={form.timezone}
+            onChange={(e) => setForm({ ...form, timezone: e.target.value })}
+          />
+        </label>
+
+        <div className="pt-4">
+          <button
+            onClick={handleSave}
+            disabled={saving}
+            className="px-5 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+          >
+            {saving ? "Saving..." : "Save Settings"}
+          </button>
+        </div>
       </div>
     </div>
   );
