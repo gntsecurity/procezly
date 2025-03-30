@@ -63,7 +63,7 @@ const SubmissionsPage = () => {
           .order("submitted_at", { ascending: false }),
       ]);
 
-      const userList = usersRes?.users || [];
+      const userList = usersRes?.data?.users || [];
 
       const cardMap = Object.fromEntries((cardData || []).map((c) => [c.id, c.uid]));
       const userMap = Object.fromEntries(
@@ -80,13 +80,13 @@ const SubmissionsPage = () => {
       }));
 
       setCards(cardData || []);
-      setUsers(userList || []);
+      setUsers(userList);
       setSubmissions(isAdmin ? withMeta : withMeta.filter((s) => s.user_id === uid));
       setLoading(false);
     };
 
     init();
-  }, []);
+  }, [isAdmin]);
 
   const handleSubmit = async () => {
     if (!orgId || !userId) return;
