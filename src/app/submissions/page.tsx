@@ -55,7 +55,7 @@ const SubmissionsPage = () => {
 
       const [{ data: cardData }, { data: userData }, { data: submissionData }] = await Promise.all([
         supabase.from("kamishibai_cards").select("id, uid").eq("organization_id", roleData.organization_id),
-        supabase.from("users").select("id, email, user_metadata"),
+        supabase.auth.admin.listUsers(),
         supabase
           .from("submissions")
           .select("*")
