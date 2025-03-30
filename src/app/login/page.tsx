@@ -47,12 +47,20 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-blue-50 to-white px-4">
-      <div className="bg-white p-10 rounded-2xl shadow-2xl w-full max-w-md border border-gray-100 flex flex-col items-center">
+    <div className="relative flex items-center justify-center min-h-screen bg-gray-100">
+      <img
+        src="/login-bg.webp"
+        alt="Background"
+        className="absolute inset-0 w-full h-full object-cover z-0 opacity-90"
+      />
+      <div className="absolute top-6 left-6 z-10">
+        <img src="/gnts_logo.png" alt="GNT Security" className="w-40 h-auto" />
+      </div>
+      <div className="relative z-10 bg-white p-10 rounded-2xl shadow-2xl w-full max-w-md border border-gray-100 flex flex-col items-center">
         <img
           src="/logo.png"
           alt="Procezly Logo"
-          className="w-20 h-20 mb-6 rounded-md shadow-md"
+          className="w-16 h-16 mb-6 rounded-md shadow-md"
         />
         <h2 className="text-3xl font-bold text-center text-gray-900">Sign In</h2>
         <p className="text-gray-500 text-center mt-2">Access your Procezly dashboard</p>
