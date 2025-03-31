@@ -127,11 +127,8 @@ const CardItem = ({ card }: { card: Card }) => {
     item: card,
   })
 
-  return (
-    <div
-      ref={dragRef}
-      className="bg-gray-100 border border-gray-300 rounded px-3 py-2 mb-2 flex items-center justify-between"
-    >
+  return dragRef(
+    <div className="bg-gray-100 border border-gray-300 rounded px-3 py-2 mb-2 flex items-center justify-between">
       <span className="text-sm font-medium text-gray-800">{card.uid}</span>
       <GripVertical className="text-gray-500" size={16} />
     </div>
