@@ -80,7 +80,6 @@ const SubmissionsPage = () => {
     };
 
     init();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const handleSubmit = async () => {
@@ -94,6 +93,26 @@ const SubmissionsPage = () => {
     };
 
     await supabase.from("submissions").insert(payload);
+
+    // NEW: also update audit_assignments if this user has a pending match
+    const { data: match } = await supabase
+      .from("audit_assignments")
+      .select("id")
+      .eq("organization_id", orgId)
+      .eq("user_id", userId)
+      .eq("card_id", form.card_id)
+      .eq("status", "pending")
+      .order("assigned_at", { ascending: false })
+      .limit(1)
+      .single();
+
+    if (match?.id) {
+      await supabase
+        .from("audit_assignments")
+        .update({ status: form.status.toLowerCase(), completed_at: new Date().toISOString() })
+        .eq("id", match.id);
+    }
+
     setForm({ card_id: "", status: "", notes: "" });
 
     const { data: updated } = await supabase
