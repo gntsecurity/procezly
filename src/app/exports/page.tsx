@@ -2,10 +2,12 @@
 
 import { useEffect, useState } from "react";
 import { supabase } from "../../utils/supabaseClient";
-import { Download, FileText } from "lucide-react";
+import { Download } from "lucide-react";
 
 export default function ExportPage() {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [submissions, setSubmissions] = useState<any[]>([]);
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [orgId, setOrgId] = useState<string | null>(null);
 
   useEffect(() => {
@@ -13,7 +15,6 @@ export default function ExportPage() {
       const {
         data: { user },
       } = await supabase.auth.getUser();
-
       if (!user) return;
 
       const { data: roleData } = await supabase
@@ -25,9 +26,6 @@ export default function ExportPage() {
       if (!roleData) return;
 
       setOrgId(roleData.organization_id);
-
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const orgIdRef = roleData.organization_id;
 
       const { data } = await supabase
         .from("submissions")

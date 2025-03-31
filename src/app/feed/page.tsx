@@ -14,7 +14,9 @@ interface AuditLog {
 
 const FeedPage = () => {
   const [logs, setLogs] = useState<AuditLog[]>([]);
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [orgId, setOrgId] = useState<string | null>(null);
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [userId, setUserId] = useState<string | null>(null);
   const [isAdmin, setIsAdmin] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -38,11 +40,6 @@ const FeedPage = () => {
 
       setOrgId(roleData.organization_id);
       setIsAdmin(roleData.role === "admin");
-
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const orgIdRef = roleData.organization_id;
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const userIdRef = user.id;
 
       const { data: logData } = await supabase
         .from("audit_logs")

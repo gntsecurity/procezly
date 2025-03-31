@@ -20,6 +20,7 @@ const SchedulerPage = () => {
     "In Progress": [],
     Complete: [],
   });
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [orgId, setOrgId] = useState<string | null>(null);
 
   useEffect(() => {
@@ -38,9 +39,6 @@ const SchedulerPage = () => {
       if (!roleData) return;
 
       setOrgId(roleData.organization_id);
-
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const orgIdRef = roleData.organization_id;
 
       const { data } = await supabase
         .from("kamishibai_cards")
