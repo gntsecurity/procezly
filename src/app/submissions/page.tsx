@@ -75,11 +75,12 @@ const SubmissionsPage = () => {
 
       setCards(cardData || []);
       setUsers(orgUserData || []);
-      setSubmissions(isAdmin ? withMeta : withMeta.filter((s) => s.user_id === uid));
+      setSubmissions(roleData.role === "admin" ? withMeta : withMeta.filter((s) => s.user_id === uid));
       setLoading(false);
     };
 
     init();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const handleSubmit = async () => {
