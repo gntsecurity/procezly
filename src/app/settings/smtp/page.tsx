@@ -8,6 +8,8 @@ const SmtpSettingsPage = () => {
   const [orgId, setOrgId] = useState<string | null>(null);
   const [isAdmin, setIsAdmin] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [testing, setTesting] = useState(false);
+  const [testResult, setTestResult] = useState<"success" | "error" | null>(null);
 
   const [form, setForm] = useState({
     host: "",
@@ -60,6 +62,29 @@ const SmtpSettingsPage = () => {
 
     if (error) console.error(error);
     setSaving(false);
+  };
+
+  const handleTest = async () => {
+    setTesting(true);
+    setTestResult(null);
+
+    const session = await supabase.auth.getSession();
+    const token = session.data.session?.access_token;
+
+    const res = await fetch(
+      "https://joobzeomanhtvdedbzxa.supabase.co/functions/v1/send-email",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ test: true }),
+      }
+    );
+
+    setTestResult(res.ok ? "success" : "error");
+    setTesting(false);
   };
 
   if (!isAdmin) return null;
@@ -135,7 +160,7 @@ const SmtpSettingsPage = () => {
           <span className="text-sm text-gray-700">Use secure connection (SSL/TLS)</span>
         </label>
 
-        <div className="pt-4">
+        <div className="pt-4 flex gap-3 items-center">
           <button
             onClick={handleSave}
             disabled={saving}
@@ -143,6 +168,21 @@ const SmtpSettingsPage = () => {
           >
             {saving ? "Saving..." : "Save Settings"}
           </button>
+
+          <button
+            onClick={handleTest}
+            disabled={testing}
+            className="px-5 py-2 bg-gray-100 text-gray-800 border border-gray-300 rounded hover:bg-gray-200"
+          >
+            {testing ? "Sending..." : "Send Test Email"}
+          </button>
+
+          {testResult === "success" && (
+            <span className="text-green-600 text-sm">✓ Test email sent</span>
+          )}
+          {testResult === "error" && (
+            <span className="text-red-600 text-sm">✗ Test failed</span>
+          )}
         </div>
       </div>
     </div>
