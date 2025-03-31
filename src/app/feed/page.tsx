@@ -8,7 +8,7 @@ interface AuditLog {
   id: string;
   action: string;
   created_at: string;
-  metadata: Record<string, any>;
+  metadata: Record<string, unknown>;
   organization_id: string;
 }
 

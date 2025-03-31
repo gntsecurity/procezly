@@ -2,20 +2,27 @@
 
 import { useEffect, useState } from "react";
 import { supabase } from "../../utils/supabaseClient";
-import { Download } from "lucide-react";
 
-export default function ExportPage() {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const [submissions, setSubmissions] = useState<any[]>([]);
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const [orgId, setOrgId] = useState<string | null>(null);
+interface Submission {
+  id: string;
+  card_id: string;
+  status: string;
+  notes: string;
+  submitted_at: string;
+  user_id: string;
+  organization_id: string;
+}
+
+export default function ExportsPage() {
+  const [submissions, setSubmissions] = useState<Submission[]>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchSubmissions = async () => {
+    const fetchData = async () => {
       const {
         data: { user },
       } = await supabase.auth.getUser();
-      if (!user) return;
+      if (!user?.id) return;
 
       const { data: roleData } = await supabase
         .from("roles")
@@ -25,38 +32,54 @@ export default function ExportPage() {
 
       if (!roleData) return;
 
-      setOrgId(roleData.organization_id);
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const orgId = roleData.organization_id;
 
-      const { data } = await supabase
+      const { data: submissionData } = await supabase
         .from("submissions")
         .select("*")
-        .eq("organization_id", roleData.organization_id);
+        .eq("organization_id", roleData.organization_id)
+        .order("submitted_at", { ascending: false });
 
-      setSubmissions(data || []);
+      setSubmissions(submissionData || []);
+      setLoading(false);
     };
 
-    fetchSubmissions();
+    fetchData();
   }, []);
 
   return (
     <div className="px-4 pt-6 sm:px-6 w-full max-w-4xl mx-auto">
-      <h1 className="text-2xl font-semibold text-gray-900 mb-4">Export Submissions</h1>
+      <h1 className="text-2xl font-semibold text-gray-900 mb-4">Export Data</h1>
 
       <div className="bg-white border border-gray-200 rounded-lg p-4">
-        {submissions.length === 0 ? (
-          <p className="text-gray-600 text-sm">No submissions available yet.</p>
+        {loading ? (
+          <p className="text-gray-600 text-sm">Loading submissions...</p>
+        ) : submissions.length === 0 ? (
+          <p className="text-gray-600 text-sm">No submissions to export.</p>
         ) : (
-          <ul className="divide-y">
-            {submissions.map((s) => (
-              <li key={s.id} className="py-3 flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-gray-800">{s.uid}</p>
-                  <p className="text-xs text-gray-500">{new Date(s.created_at).toLocaleString()}</p>
-                </div>
-                <Download className="text-gray-500" size={18} />
-              </li>
-            ))}
-          </ul>
+          <table className="w-full text-sm text-left text-gray-600">
+            <thead className="text-xs text-gray-500 uppercase bg-gray-50">
+              <tr>
+                <th className="px-4 py-2">Card ID</th>
+                <th className="px-4 py-2">Status</th>
+                <th className="px-4 py-2">Notes</th>
+                <th className="px-4 py-2">Submitted</th>
+              </tr>
+            </thead>
+            <tbody>
+              {submissions.map((s) => (
+                <tr key={s.id} className="border-b">
+                  <td className="px-4 py-2">{s.card_id}</td>
+                  <td className="px-4 py-2">{s.status}</td>
+                  <td className="px-4 py-2">{s.notes}</td>
+                  <td className="px-4 py-2">
+                    {new Date(s.submitted_at).toLocaleString()}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         )}
       </div>
     </div>
