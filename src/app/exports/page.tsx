@@ -2,29 +2,19 @@
 
 import { useEffect, useState } from "react";
 import { supabase } from "../../utils/supabaseClient";
-import { Download } from "lucide-react";
+import { Download, FileText } from "lucide-react";
 
-interface Submission {
-  id: string;
-  card_id: string;
-  status: string;
-  notes: string;
-  user_id: string;
-  submitted_at: string;
-  organization_id: string;
-}
-
-const ExportPage = () => {
-  const [submissions, setSubmissions] = useState<Submission[]>([]);
+export default function ExportPage() {
+  const [submissions, setSubmissions] = useState<any[]>([]);
   const [orgId, setOrgId] = useState<string | null>(null);
-  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const init = async () => {
+    const fetchSubmissions = async () => {
       const {
         data: { user },
       } = await supabase.auth.getUser();
-      if (!user?.id) return;
+
+      if (!user) return;
 
       const { data: roleData } = await supabase
         .from("roles")
@@ -33,89 +23,44 @@ const ExportPage = () => {
         .single();
 
       if (!roleData) return;
+
       setOrgId(roleData.organization_id);
 
-      const { data: submissionData } = await supabase
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const orgIdRef = roleData.organization_id;
+
+      const { data } = await supabase
         .from("submissions")
         .select("*")
-        .eq("organization_id", roleData.organization_id)
-        .order("submitted_at", { ascending: false });
+        .eq("organization_id", roleData.organization_id);
 
-      setSubmissions(submissionData || []);
-      setLoading(false);
+      setSubmissions(data || []);
     };
 
-    init();
+    fetchSubmissions();
   }, []);
-
-  const exportCSV = () => {
-    if (submissions.length === 0) return;
-
-    const headers = Object.keys(submissions[0]);
-    const csvRows = [headers.join(",")];
-
-    for (const row of submissions) {
-      const values = headers.map((field) => {
-        const val = (row as any)[field];
-        return typeof val === "string" && val.includes(",")
-          ? `"${val.replace(/"/g, '""')}"`
-          : val;
-      });
-      csvRows.push(values.join(","));
-    }
-
-    const blob = new Blob([csvRows.join("\n")], { type: "text/csv" });
-    const url = window.URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = "submissions.csv";
-    a.click();
-    window.URL.revokeObjectURL(url);
-  };
-
-  const exportJSON = () => {
-    if (submissions.length === 0) return;
-
-    const blob = new Blob([JSON.stringify(submissions, null, 2)], {
-      type: "application/json",
-    });
-    const url = window.URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = "submissions.json";
-    a.click();
-    window.URL.revokeObjectURL(url);
-  };
 
   return (
     <div className="px-4 pt-6 sm:px-6 w-full max-w-4xl mx-auto">
-      <h1 className="text-2xl font-semibold text-gray-900 mb-4">Export Data</h1>
+      <h1 className="text-2xl font-semibold text-gray-900 mb-4">Export Submissions</h1>
 
-      {loading ? (
-        <div className="text-gray-600">Loading...</div>
-      ) : (
-        <div className="bg-white border border-gray-200 rounded-lg p-4">
-          <h2 className="text-lg font-medium text-gray-800 mb-2">Submissions</h2>
-          <div className="flex gap-4">
-            <button
-              onClick={exportCSV}
-              className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 flex items-center"
-            >
-              <Download size={18} className="mr-2" />
-              Export CSV
-            </button>
-            <button
-              onClick={exportJSON}
-              className="bg-gray-700 text-white px-4 py-2 rounded hover:bg-gray-800 flex items-center"
-            >
-              <Download size={18} className="mr-2" />
-              Export JSON
-            </button>
-          </div>
-        </div>
-      )}
+      <div className="bg-white border border-gray-200 rounded-lg p-4">
+        {submissions.length === 0 ? (
+          <p className="text-gray-600 text-sm">No submissions available yet.</p>
+        ) : (
+          <ul className="divide-y">
+            {submissions.map((s) => (
+              <li key={s.id} className="py-3 flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-gray-800">{s.uid}</p>
+                  <p className="text-xs text-gray-500">{new Date(s.created_at).toLocaleString()}</p>
+                </div>
+                <Download className="text-gray-500" size={18} />
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
     </div>
   );
-};
-
-export default ExportPage;
+}

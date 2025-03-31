@@ -13,7 +13,7 @@ export default function CompliancePage() {
         <p className="text-gray-700 leading-relaxed">
           Compliance reduces risk and ensures your organization meets internal standards and
           external regulations. Whether pursuing ISO certification or internal accountability,
-          it's the foundation of operational trust.
+          it&apos;s the foundation of operational trust.
         </p>
       </section>
 

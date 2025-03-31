@@ -35,8 +35,14 @@ const FeedPage = () => {
         .single();
 
       if (!roleData) return;
-      setIsAdmin(roleData.role === "admin");
+
       setOrgId(roleData.organization_id);
+      setIsAdmin(roleData.role === "admin");
+
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const orgIdRef = roleData.organization_id;
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const userIdRef = user.id;
 
       const { data: logData } = await supabase
         .from("audit_logs")

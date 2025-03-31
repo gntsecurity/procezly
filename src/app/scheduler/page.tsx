@@ -36,7 +36,11 @@ const SchedulerPage = () => {
         .single();
 
       if (!roleData) return;
+
       setOrgId(roleData.organization_id);
+
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const orgIdRef = roleData.organization_id;
 
       const { data } = await supabase
         .from("kamishibai_cards")
