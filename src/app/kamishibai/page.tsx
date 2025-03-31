@@ -18,8 +18,14 @@ interface KamishibaiCard {
   modified?: string;
 }
 
+interface OrgUser {
+  user_id: string;
+  display_name: string;
+}
+
 const KamishibaiPage = () => {
   const [cards, setCards] = useState<KamishibaiCard[]>([]);
+  const [users, setUsers] = useState<OrgUser[]>([]);
   const [isAdmin, setIsAdmin] = useState(false);
   const [orgId, setOrgId] = useState<string | null>(null);
   const [userId, setUserId] = useState<string | null>(null);
@@ -55,21 +61,24 @@ const KamishibaiPage = () => {
       setOrgId(roleData.organization_id);
       setUserId(user.user.id);
 
-      const { data: cards } = await supabase
-        .from("kamishibai_cards")
-        .select("*")
-        .eq("organization_id", roleData.organization_id)
-        .order("modified", { ascending: false });
+      const [{ data: cards }, { data: orgUsers }] = await Promise.all([
+        supabase
+          .from("kamishibai_cards")
+          .select("*")
+          .eq("organization_id", roleData.organization_id)
+          .order("modified", { ascending: false }),
+        supabase
+          .from("org_users")
+          .select("user_id, display_name")
+          .eq("organization_id", roleData.organization_id),
+      ]);
 
       setCards(cards || []);
+      setUsers(orgUsers || []);
     };
 
     fetchData();
   }, []);
-
-  useEffect(() => {
-    if (orgId) console.debug("orgId:", orgId);
-  }, [orgId]);
 
   const handleDelete = async (id: string) => {
     if (!confirm("Delete this card?")) return;
@@ -168,19 +177,15 @@ const KamishibaiPage = () => {
                 <td className="px-4 py-2 text-gray-900">{card.uid}</td>
                 <td className="px-4 py-2 text-gray-900">{card.area}</td>
                 <td className="px-4 py-2 text-gray-900">{card.task}</td>
-                <td className="px-4 py-2 text-gray-900">{card.responsible}</td>
+                <td className="px-4 py-2 text-gray-900">
+                  {users.find((u) => u.user_id === card.responsible)?.display_name || "Unknown"}
+                </td>
                 {isAdmin && (
                   <td className="px-4 py-2 text-right space-x-2">
-                    <button
-                      className="text-blue-600 hover:text-blue-800"
-                      onClick={() => handleEdit(card)}
-                    >
+                    <button className="text-blue-600 hover:text-blue-800" onClick={() => handleEdit(card)}>
                       <Pencil size={18} />
                     </button>
-                    <button
-                      className="text-red-600 hover:text-red-800"
-                      onClick={() => handleDelete(card.id)}
-                    >
+                    <button className="text-red-600 hover:text-red-800" onClick={() => handleDelete(card.id)}>
                       <Trash2 size={18} />
                     </button>
                   </td>
@@ -201,15 +206,10 @@ const KamishibaiPage = () => {
       {modalOpen && (
         <div className="fixed inset-0 z-50 bg-black/40 flex items-center justify-center px-4">
           <div className="bg-white rounded-lg w-full max-w-2xl p-6 relative">
-            <button
-              onClick={resetForm}
-              className="absolute top-3 right-3 text-gray-400 hover:text-gray-600"
-            >
+            <button onClick={resetForm} className="absolute top-3 right-3 text-gray-400 hover:text-gray-600">
               <X size={20} />
             </button>
-            <h2 className="text-lg font-semibold mb-4">
-              {editId ? "Edit Card" : "Add New Card"}
-            </h2>
+            <h2 className="text-lg font-semibold mb-4">{editId ? "Edit Card" : "Add New Card"}</h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <input
                 className="border border-gray-300 rounded px-3 py-2"
@@ -223,12 +223,18 @@ const KamishibaiPage = () => {
                 value={formData.area}
                 onChange={(e) => setFormData({ ...formData, area: e.target.value })}
               />
-              <input
+              <select
                 className="border border-gray-300 rounded px-3 py-2"
-                placeholder="Responsible"
                 value={formData.responsible}
                 onChange={(e) => setFormData({ ...formData, responsible: e.target.value })}
-              />
+              >
+                <option value="">Select Responsible</option>
+                {users.map((user) => (
+                  <option key={user.user_id} value={user.user_id}>
+                    {user.display_name}
+                  </option>
+                ))}
+              </select>
               <input
                 className="border border-gray-300 rounded px-3 py-2"
                 placeholder="Tips"
