@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { supabase } from "../../../utils/supabaseClient";
 
 const NotificationSettingsPage = () => {
   const [orgId, setOrgId] = useState<string | null>(null);

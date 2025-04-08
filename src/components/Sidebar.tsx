@@ -1,7 +1,6 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { supabase } from "../utils/supabaseClient";
 import {
   Home,
   LogOut,

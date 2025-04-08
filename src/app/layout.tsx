@@ -3,7 +3,6 @@
 import { useEffect, useState } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import InstallPrompt from "../components/InstallPrompt";
-import { supabase } from "../utils/supabaseClient";
 import Sidebar from "../components/Sidebar";
 import Footer from "../components/Footer";
 import CookieBanner from "../components/CookieBanner";

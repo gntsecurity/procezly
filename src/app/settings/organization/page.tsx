@@ -1,7 +1,6 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { supabase } from '../../../utils/supabaseClient'
 import Link from 'next/link'
 import { Pencil, X } from 'lucide-react'
 
