@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { supabase } from '../../utils/supabaseClient'
+import { useUser } from '@clerk/nextjs'
 import {
   ClipboardList,
   ShieldCheck,
@@ -18,6 +18,9 @@ import SubmissionChart from '../../components/dashboard/SubmissionChart'
 import AuditLogModal from '../../components/dashboard/AuditLogModal'
 
 const Dashboard = () => {
+  const router = useRouter()
+  const { user, isSignedIn, isLoaded } = useUser()
+
   const [dashboardData, setDashboardData] = useState({
     totalCards: 0,
     activeUsers: 0,
@@ -27,65 +30,46 @@ const Dashboard = () => {
   })
 
   const [userName, setUserName] = useState('')
-  const [isAuthenticated, setIsAuthenticated] = useState(false)
   const [modalOpen, setModalOpen] = useState(false)
   const [logHistory, setLogHistory] = useState<
     { action: string; timestamp: string }[]
   >([])
   const [chartData, setChartData] = useState<number[]>([])
 
-  const router = useRouter()
-
   useEffect(() => {
-    const checkAuth = async () => {
-      const { data: session } = await supabase.auth.getSession()
-      if (!session?.session) {
-        window.location.href = '/login'
-        return
-      }
-      setIsAuthenticated(true)
+    if (!isLoaded) return
+    if (!isSignedIn) {
+      router.replace('/login')
+      return
     }
 
+    const userId = user.id
+    const displayName = user.fullName || user.emailAddresses[0]?.emailAddress
+    setUserName(displayName || 'there')
+
     const fetchData = async () => {
-      const { data: user, error: userError } = await supabase.auth.getUser()
-      if (userError || !user?.user?.id) return
-
-      const fullName = user.user.user_metadata?.full_name
-      setUserName(fullName || user.user.email?.split('@')[0] || 'there')
-
-      const { data: roleData } = await supabase
-        .from('roles')
-        .select('organization_id, role')
-        .eq('user_id', user.user.id)
-        .single()
-
-      if (!roleData) return
-
+      const roleRes = await fetch(`/functions/api/roles?user_id=${userId}`)
+      const roleData = await roleRes.json()
       const orgId = roleData.organization_id
 
-      const [cards, users, submissions, logs] = await Promise.all([
-        supabase.from('kamishibai_cards').select('*').eq('organization_id', orgId),
-        supabase.from('roles').select('user_id').eq('organization_id', orgId),
-        supabase.from('submissions').select('submitted_at').eq('organization_id', orgId),
-        supabase
-          .from('audit_logs')
-          .select('action, timestamp')
-          .eq('organization_id', orgId)
-          .order('timestamp', { ascending: false })
-          .limit(5),
-      ])
+      const [cardsRes, usersRes, submissionsRes, logsRes, fullLogsRes] =
+        await Promise.all([
+          fetch(`/functions/api/kamishibai-cards?organization_id=${orgId}`),
+          fetch(`/functions/api/roles-by-org?organization_id=${orgId}`),
+          fetch(`/functions/api/submissions?organization_id=${orgId}`),
+          fetch(`/functions/api/audit-logs?organization_id=${orgId}&limit=5`),
+          fetch(`/functions/api/audit-logs?organization_id=${orgId}&limit=50`),
+        ])
 
-      const fullLogs = await supabase
-        .from('audit_logs')
-        .select('action, timestamp')
-        .eq('organization_id', orgId)
-        .order('timestamp', { ascending: false })
-        .limit(50)
+      const cards = await cardsRes.json()
+      const users = await usersRes.json()
+      const submissions = await submissionsRes.json()
+      const logs = await logsRes.json()
+      const fullLogs = await fullLogsRes.json()
 
-      const submissionTimestamps = submissions.data?.map((s) => s.submitted_at) || []
+      const submissionTimestamps = submissions.map((s: any) => s.submitted_at)
       const past7 = Array(7).fill(0)
-
-      submissionTimestamps.forEach((ts) => {
+      submissionTimestamps.forEach((ts: string) => {
         const dayDiff = Math.floor(
           (Date.now() - new Date(ts).getTime()) / (1000 * 60 * 60 * 24)
         )
@@ -93,26 +77,25 @@ const Dashboard = () => {
       })
 
       setChartData(past7)
-      setLogHistory(fullLogs.data || [])
+      setLogHistory(fullLogs)
 
       setDashboardData({
-        totalCards: cards.data?.length || 0,
-        activeUsers: users.data?.length || 0,
-        complianceScore: submissions.data?.length
-          ? Math.min(100, submissions.data.length * 3)
+        totalCards: cards.length,
+        activeUsers: users.length,
+        complianceScore: submissions.length
+          ? Math.min(100, submissions.length * 3)
           : 0,
-        recentActions: logs.data || [],
+        recentActions: logs,
         role: roleData.role || '',
       })
     }
 
-    checkAuth()
     fetchData()
     const interval = setInterval(fetchData, 120000)
     return () => clearInterval(interval)
-  }, [])
+  }, [isSignedIn, isLoaded, user, router])
 
-  if (!isAuthenticated) return <div>Loading...</div>
+  if (!isLoaded || !isSignedIn) return <div>Loading...</div>
 
   return (
     <div className="px-4 pt-4 sm:px-6 sm:pt-6 lg:px-12 w-full max-w-7xl mx-auto">
@@ -151,11 +134,14 @@ const Dashboard = () => {
           />
         )}
       </div>
+
       <div className="mt-10 hidden xl:block">
         <SubmissionChart data={chartData} />
       </div>
 
-      {modalOpen && <AuditLogModal logs={logHistory} onClose={() => setModalOpen(false)} />}
+      {modalOpen && (
+        <AuditLogModal logs={logHistory} onClose={() => setModalOpen(false)} />
+      )}
 
       <div className="hidden">
         <AlertTriangle />

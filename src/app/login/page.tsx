@@ -1,49 +1,48 @@
-"use client";
+'use client'
 
-import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
-import { createClient } from "@supabase/supabase-js";
-
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-);
+import { useEffect, useState } from 'react'
+import { useRouter } from 'next/navigation'
 
 export default function LoginPage() {
-  const router = useRouter();
-  const [error, setError] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const router = useRouter()
+  const [error, setError] = useState<string | null>(null)
+  const [loading, setLoading] = useState(false)
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
 
   useEffect(() => {
-    const checkAuth = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (session) {
-        router.push("/dashboard");
-      }
-    };
-    checkAuth();
-  }, [router]);
+    const token = localStorage.getItem('auth_token')
+    if (token) router.push('/dashboard')
+  }, [router])
 
   const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError(null);
-    setLoading(true);
+    e.preventDefault()
+    setError(null)
+    setLoading(true)
 
-    const { error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
+    // Simulated login endpoint — replace with real auth later
+    const res = await fetch('/functions/api/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password }),
+    })
 
-    if (error) {
-      setError(error.message);
-      setLoading(false);
-      return;
+    if (!res.ok) {
+      const data = await res.json()
+      setError(data.error || 'Login failed')
+      setLoading(false)
+      return
     }
 
-    router.push("/dashboard");
-  };
+    const { user_id, name, token } = await res.json()
+
+    localStorage.setItem('auth_token', token)
+    localStorage.setItem('user_id', user_id)
+    localStorage.setItem('user_email', email)
+    localStorage.setItem('user_name', name)
+
+    router.push('/dashboard')
+  }
 
   return (
     <div className="relative flex items-center justify-center min-h-screen bg-gray-100 px-4">
@@ -96,10 +95,10 @@ export default function LoginPage() {
             className="w-full py-3 font-semibold text-white bg-blue-600 rounded-xl hover:bg-blue-700 transition duration-200"
             disabled={loading}
           >
-            {loading ? "Signing in..." : "Sign In"}
+            {loading ? 'Signing in...' : 'Sign In'}
           </button>
         </form>
       </div>
     </div>
-  );
+  )
 }

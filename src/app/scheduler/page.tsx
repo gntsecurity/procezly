@@ -1,10 +1,10 @@
-"use client"
+'use client'
 
-import { useEffect, useState } from "react"
-import { useDrop, useDrag, DndProvider } from "react-dnd"
-import { HTML5Backend } from "react-dnd-html5-backend"
-import { supabase } from "../../utils/supabaseClient"
-import { GripVertical } from "lucide-react"
+import { useEffect, useState } from 'react'
+import { useUser } from '@clerk/nextjs'
+import { useDrop, useDrag, DndProvider } from 'react-dnd'
+import { HTML5Backend } from 'react-dnd-html5-backend'
+import { GripVertical } from 'lucide-react'
 
 interface Card {
   id: string
@@ -12,64 +12,62 @@ interface Card {
   audit_phase: string
 }
 
-const phases = ["Planned", "In Progress", "Complete"]
+const phases = ['Planned', 'In Progress', 'Complete']
 
 const SchedulerPage = () => {
+  const { user, isSignedIn, isLoaded } = useUser()
   const [cardsByPhase, setCardsByPhase] = useState<Record<string, Card[]>>({
     Planned: [],
-    "In Progress": [],
+    'In Progress': [],
     Complete: [],
   })
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const [orgId, setOrgId] = useState<string | null>(null)
 
   useEffect(() => {
-    const init = async () => {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser()
-      if (!user?.id) return
+    if (!isLoaded || !isSignedIn) return
 
-      const { data: roleData } = await supabase
-        .from("roles")
-        .select("organization_id")
-        .eq("user_id", user.id)
-        .single()
+    const load = async () => {
+      const roleRes = await fetch(`/functions/api/roles?user_id=${user.id}`)
+      const roleData = await roleRes.json()
+      const orgId = roleData.organization_id
 
-      if (!roleData) return
+      const cardRes = await fetch(`/functions/api/kamishibai-cards?organization_id=${orgId}`)
+      const allCards: Card[] = await cardRes.json()
 
-      setOrgId(roleData.organization_id)
-
-      const { data } = await supabase
-        .from("kamishibai_cards")
-        .select("id, uid, audit_phase")
-        .eq("organization_id", roleData.organization_id)
-
-      const grouped = { Planned: [], "In Progress": [], Complete: [] } as Record<string, Card[]>
-      for (const card of data || []) {
-        grouped[card.audit_phase || "Planned"].push(card)
+      const grouped: Record<string, Card[]> = {
+        Planned: [],
+        'In Progress': [],
+        Complete: [],
       }
+
+      for (const card of allCards) {
+        const phase = card.audit_phase || 'Planned'
+        grouped[phase].push(card)
+      }
+
       setCardsByPhase(grouped)
     }
 
-    init()
-  }, [])
+    load()
+  }, [isLoaded, isSignedIn, user])
 
   const moveCard = async (card: Card, toPhase: string) => {
     if (card.audit_phase === toPhase) return
 
-    await supabase
-      .from("kamishibai_cards")
-      .update({ audit_phase: toPhase })
-      .eq("id", card.id)
+    await fetch('/functions/api/kamishibai-cards', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id: card.id, audit_phase: toPhase }),
+    })
 
     setCardsByPhase((prev) => {
-      const next = { ...prev }
-      next[card.audit_phase] = next[card.audit_phase].filter((c) => c.id !== card.id)
-      next[toPhase] = [...next[toPhase], { ...card, audit_phase: toPhase }]
-      return next
+      const updated = { ...prev }
+      updated[card.audit_phase] = updated[card.audit_phase].filter((c) => c.id !== card.id)
+      updated[toPhase] = [...updated[toPhase], { ...card, audit_phase: toPhase }]
+      return updated
     })
   }
+
+  if (!isLoaded || !isSignedIn) return null
 
   return (
     <DndProvider backend={HTML5Backend}>
@@ -100,7 +98,7 @@ const PhaseColumn = ({
   onDropCard: (card: Card, toPhase: string) => void
 }) => {
   const [{ isOver }, dropRef] = useDrop({
-    accept: "CARD",
+    accept: 'CARD',
     drop: (item: Card) => onDropCard(item, phase),
     collect: (monitor) => ({
       isOver: monitor.isOver(),
@@ -110,7 +108,7 @@ const PhaseColumn = ({
   return dropRef(
     <div
       className={`bg-white border border-gray-200 rounded-lg p-4 min-h-[300px] transition ${
-        isOver ? "bg-blue-50" : ""
+        isOver ? 'bg-blue-50' : ''
       }`}
     >
       <h2 className="text-lg font-semibold mb-3 text-gray-700">{phase}</h2>
@@ -123,7 +121,7 @@ const PhaseColumn = ({
 
 const CardItem = ({ card }: { card: Card }) => {
   const [, dragRef] = useDrag({
-    type: "CARD",
+    type: 'CARD',
     item: card,
   })
 

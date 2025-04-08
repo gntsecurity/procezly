@@ -1,93 +1,87 @@
-"use client";
+'use client'
 
-import { useEffect, useState } from "react";
-import Link from "next/link";
-import { supabase } from "../../../utils/supabaseClient";
+import { useEffect, useState } from 'react'
+import Link from 'next/link'
+import { useUser } from '@clerk/nextjs'
+import { useRouter } from 'next/navigation'
 
 const SmtpSettingsPage = () => {
-  const [orgId, setOrgId] = useState<string | null>(null);
-  const [isAdmin, setIsAdmin] = useState(false);
-  const [saving, setSaving] = useState(false);
-  const [testing, setTesting] = useState(false);
-  const [testResult, setTestResult] = useState<"success" | "error" | null>(null);
+  const router = useRouter()
+  const { user, isSignedIn, isLoaded } = useUser()
+
+  const [orgId, setOrgId] = useState<string | null>(null)
+  const [isAdmin, setIsAdmin] = useState(false)
+  const [saving, setSaving] = useState(false)
+  const [testing, setTesting] = useState(false)
+  const [testResult, setTestResult] = useState<'success' | 'error' | null>(null)
 
   const [form, setForm] = useState({
-    host: "",
-    port: 587,
-    username: "",
-    password: "",
-    from_email: "",
+    smtp_host: '',
+    smtp_port: 587,
+    smtp_user: '',
+    smtp_pass: '',
     secure: false,
-  });
+  })
 
   useEffect(() => {
+    if (!isLoaded || !isSignedIn) return
+
     const init = async () => {
-      const { data: user } = await supabase.auth.getUser();
-      if (!user?.user?.id) return;
+      const userId = user.id
+      const res = await fetch(`/functions/api/roles?user_id=${userId}`)
+      const roleData = await res.json()
 
-      const { data: roleData } = await supabase
-        .from("roles")
-        .select("role, organization_id")
-        .eq("user_id", user.user.id)
-        .single();
+      if (!roleData) return
 
-      if (!roleData) return;
-      setOrgId(roleData.organization_id);
-      setIsAdmin(roleData.role === "admin");
+      setOrgId(roleData.organization_id)
+      setIsAdmin(roleData.role === 'admin')
 
-      const { data: existing } = await supabase
-        .from("smtp_settings")
-        .select("*")
-        .eq("organization_id", roleData.organization_id)
-        .single();
+      const existing = await fetch(
+        `/functions/api/smtp-settings?organization_id=${roleData.organization_id}`
+      )
+      if (existing.ok) {
+        const data = await existing.json()
+        setForm(data)
+      }
+    }
 
-      if (existing) setForm(existing);
-    };
-
-    init();
-  }, []);
+    init()
+  }, [isLoaded, isSignedIn, user])
 
   const handleSave = async () => {
-    if (!orgId) return;
-    setSaving(true);
+    if (!orgId) return
+    setSaving(true)
 
     const payload = {
       ...form,
       organization_id: orgId,
-    };
+    }
 
-    const { error } = await supabase
-      .from("smtp_settings")
-      .upsert(payload, { onConflict: "organization_id" });
+    await fetch('/functions/api/smtp-settings', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    })
 
-    if (error) console.error(error);
-    setSaving(false);
-  };
+    setSaving(false)
+  }
 
   const handleTest = async () => {
-    setTesting(true);
-    setTestResult(null);
+    if (!orgId) return
+    setTesting(true)
+    setTestResult(null)
 
-    const session = await supabase.auth.getSession();
-    const token = session.data.session?.access_token;
+    const res = await fetch('/functions/api/send-test-email', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ organization_id: orgId }),
+    })
 
-    const res = await fetch(
-      "https://joobzeomanhtvdedbzxa.supabase.co/functions/v1/send-email",
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({ test: true }),
-      }
-    );
+    setTestResult(res.ok ? 'success' : 'error')
+    setTesting(false)
+  }
 
-    setTestResult(res.ok ? "success" : "error");
-    setTesting(false);
-  };
-
-  if (!isAdmin) return null;
+  if (!isLoaded || !isSignedIn || !isAdmin) return null
 
   return (
     <div className="px-4 pt-6 sm:px-6 w-full max-w-3xl mx-auto">
@@ -106,8 +100,8 @@ const SmtpSettingsPage = () => {
           <input
             type="text"
             className="w-full border px-3 py-2 rounded"
-            value={form.host}
-            onChange={(e) => setForm({ ...form, host: e.target.value })}
+            value={form.smtp_host}
+            onChange={(e) => setForm({ ...form, smtp_host: e.target.value })}
           />
         </label>
 
@@ -116,8 +110,8 @@ const SmtpSettingsPage = () => {
           <input
             type="number"
             className="w-full border px-3 py-2 rounded"
-            value={form.port}
-            onChange={(e) => setForm({ ...form, port: parseInt(e.target.value) })}
+            value={form.smtp_port}
+            onChange={(e) => setForm({ ...form, smtp_port: parseInt(e.target.value) })}
           />
         </label>
 
@@ -126,8 +120,8 @@ const SmtpSettingsPage = () => {
           <input
             type="text"
             className="w-full border px-3 py-2 rounded"
-            value={form.username}
-            onChange={(e) => setForm({ ...form, username: e.target.value })}
+            value={form.smtp_user}
+            onChange={(e) => setForm({ ...form, smtp_user: e.target.value })}
           />
         </label>
 
@@ -136,18 +130,8 @@ const SmtpSettingsPage = () => {
           <input
             type="password"
             className="w-full border px-3 py-2 rounded"
-            value={form.password}
-            onChange={(e) => setForm({ ...form, password: e.target.value })}
-          />
-        </label>
-
-        <label className="block">
-          <span className="block mb-1 text-sm text-gray-700">From Email</span>
-          <input
-            type="email"
-            className="w-full border px-3 py-2 rounded"
-            value={form.from_email}
-            onChange={(e) => setForm({ ...form, from_email: e.target.value })}
+            value={form.smtp_pass}
+            onChange={(e) => setForm({ ...form, smtp_pass: e.target.value })}
           />
         </label>
 
@@ -166,7 +150,7 @@ const SmtpSettingsPage = () => {
             disabled={saving}
             className="px-5 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
           >
-            {saving ? "Saving..." : "Save Settings"}
+            {saving ? 'Saving...' : 'Save Settings'}
           </button>
 
           <button
@@ -174,19 +158,19 @@ const SmtpSettingsPage = () => {
             disabled={testing}
             className="px-5 py-2 bg-gray-100 text-gray-800 border border-gray-300 rounded hover:bg-gray-200"
           >
-            {testing ? "Sending..." : "Send Test Email"}
+            {testing ? 'Sending...' : 'Send Test Email'}
           </button>
 
-          {testResult === "success" && (
+          {testResult === 'success' && (
             <span className="text-green-600 text-sm">✓ Test email sent</span>
           )}
-          {testResult === "error" && (
+          {testResult === 'error' && (
             <span className="text-red-600 text-sm">✗ Test failed</span>
           )}
         </div>
       </div>
     </div>
-  );
-};
+  )
+}
 
-export default SmtpSettingsPage;
+export default SmtpSettingsPage

@@ -1,0 +1,19 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "procezly-backend",
+  "main": "src/index.ts",
+  "compatibility_date": "2025-04-08",
+  "observability": {
+    "enabled": true
+  },
+  "triggers": {
+    "crons": ["* * * * *"]
+  },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "procezly",
+      "database_id": "75d39281-4551-4aaa-ac70-8094776729b1"
+    }
+  ]
+}

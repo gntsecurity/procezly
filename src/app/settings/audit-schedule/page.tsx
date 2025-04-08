@@ -1,75 +1,79 @@
-"use client";
+'use client'
 
-import { useEffect, useState } from "react";
-import Link from "next/link";
-import { supabase } from "../../../utils/supabaseClient";
+import { useEffect, useState } from 'react'
+import Link from 'next/link'
+import { useUser } from '@clerk/nextjs'
+import { useRouter } from 'next/navigation'
 
 const AuditSchedulePage = () => {
-  const [orgId, setOrgId] = useState<string | null>(null);
-  const [isAdmin, setIsAdmin] = useState(false);
-  const [saving, setSaving] = useState(false);
+  const router = useRouter()
+  const { user, isSignedIn, isLoaded } = useUser()
+
+  const [orgId, setOrgId] = useState<string | null>(null)
+  const [isAdmin, setIsAdmin] = useState(false)
+  const [saving, setSaving] = useState(false)
 
   const [form, setForm] = useState({
-    frequency: "weekly",
-    day_of_week: "Monday",
-    time_of_day: "08:00",
-    timezone: "America/New_York",
+    frequency: 'weekly',
+    day_of_week: 'Monday',
+    time_of_day: '08:00',
+    timezone: 'America/New_York',
     is_active: true,
-  });
+  })
 
   useEffect(() => {
-    const init = async () => {
-      const { data: user } = await supabase.auth.getUser();
-      if (!user?.user?.id) return;
+    if (!isLoaded) return
+    if (!isSignedIn) {
+      router.replace('/login')
+      return
+    }
 
-      const { data: roleData } = await supabase
-        .from("roles")
-        .select("role, organization_id")
-        .eq("user_id", user.user.id)
-        .single();
+    const userId = user.id
 
-      if (!roleData) return;
-      setOrgId(roleData.organization_id);
-      setIsAdmin(roleData.role === "admin");
+    const load = async () => {
+      const res = await fetch(`/functions/api/roles?user_id=${userId}`)
+      const roleData = await res.json()
+      const org = roleData.organization_id
+      const role = roleData.role
 
-      const { data: existing } = await supabase
-        .from("audit_schedule_settings")
-        .select("*")
-        .eq("organization_id", roleData.organization_id)
-        .single();
+      setOrgId(org)
+      setIsAdmin(role === 'admin')
 
-      if (existing) {
+      const existingRes = await fetch(`/functions/api/audit-schedule?organization_id=${org}`)
+      if (existingRes.ok) {
+        const existing = await existingRes.json()
         setForm({
           frequency: existing.frequency,
-          day_of_week: existing.day_of_week || "Monday",
+          day_of_week: existing.day_of_week || 'Monday',
           time_of_day: existing.time_of_day,
-          timezone: existing.timezone || "America/New_York",
+          timezone: existing.timezone || 'America/New_York',
           is_active: existing.is_active,
-        });
+        })
       }
-    };
+    }
 
-    init();
-  }, []);
+    load()
+  }, [isLoaded, isSignedIn, user, router])
 
   const handleSave = async () => {
-    if (!orgId) return;
-    setSaving(true);
+    if (!orgId) return
+    setSaving(true)
 
     const payload = {
       ...form,
       organization_id: orgId,
-    };
+    }
 
-    const { error } = await supabase
-      .from("audit_schedule_settings")
-      .upsert(payload, { onConflict: "organization_id" });
+    await fetch('/functions/api/audit-schedule', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    })
 
-    if (error) console.error(error);
-    setSaving(false);
-  };
+    setSaving(false)
+  }
 
-  if (!isAdmin) return null;
+  if (!isLoaded || !isSignedIn || !isAdmin) return null
 
   return (
     <div className="px-4 pt-6 sm:px-6 w-full max-w-3xl mx-auto">
@@ -80,7 +84,9 @@ const AuditSchedulePage = () => {
         ← Back to Settings
       </Link>
 
-      <h1 className="text-2xl font-semibold text-gray-900 mb-6">Audit Schedule Settings</h1>
+      <h1 className="text-2xl font-semibold text-gray-900 mb-6">
+        Audit Schedule Settings
+      </h1>
 
       <div className="bg-white border border-gray-200 rounded-lg p-6 space-y-4">
         <label className="block">
@@ -96,7 +102,7 @@ const AuditSchedulePage = () => {
           </select>
         </label>
 
-        {form.frequency === "weekly" && (
+        {form.frequency === 'weekly' && (
           <label className="block">
             <span className="block mb-1 text-sm text-gray-700">Day of Week</span>
             <select
@@ -148,12 +154,12 @@ const AuditSchedulePage = () => {
             disabled={saving}
             className="px-5 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
           >
-            {saving ? "Saving..." : "Save Settings"}
+            {saving ? 'Saving...' : 'Save Settings'}
           </button>
         </div>
       </div>
     </div>
-  );
-};
+  )
+}
 
-export default AuditSchedulePage;
+export default AuditSchedulePage

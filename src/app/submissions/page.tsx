@@ -1,190 +1,123 @@
-"use client";
+'use client'
 
-import { useEffect, useState } from "react";
-import { supabase } from "../../utils/supabaseClient";
-import { CheckCircle, Loader, Send } from "lucide-react";
+import { useEffect, useState } from 'react'
+import { useUser } from '@clerk/nextjs'
+import { CheckCircle, Loader, Send } from 'lucide-react'
 
 interface Submission {
-  id?: string;
-  card_id: string;
-  status: string;
-  notes: string;
-  submitted_at?: string;
-  user_id: string;
-  card_uid?: string;
-  user_name?: string;
+  id?: string
+  card_id: string
+  status: string
+  notes: string
+  submitted_at?: string
+  user_id: string
+  card_uid?: string
+  user_name?: string
 }
 
 interface Card {
-  id: string;
-  uid: string;
+  id: string
+  uid: string
 }
 
 interface OrgUser {
-  user_id: string;
-  display_name: string;
+  user_id: string
+  display_name: string
 }
 
 const SubmissionsPage = () => {
-  const [isAdmin, setIsAdmin] = useState(false);
-  const [orgId, setOrgId] = useState<string | null>(null);
-  const [userId, setUserId] = useState<string | null>(null);
-  const [cards, setCards] = useState<Card[]>([]);
-  const [users, setUsers] = useState<OrgUser[]>([]);
-  const [submissions, setSubmissions] = useState<Submission[]>([]);
-  const [form, setForm] = useState({ card_id: "", status: "", notes: "" });
-  const [loading, setLoading] = useState(true);
+  const { user, isSignedIn, isLoaded } = useUser()
+  const [isAdmin, setIsAdmin] = useState(false)
+  const [orgId, setOrgId] = useState<string | null>(null)
+  const [userId, setUserId] = useState<string | null>(null)
+  const [cards, setCards] = useState<Card[]>([])
+  const [users, setUsers] = useState<OrgUser[]>([])
+  const [submissions, setSubmissions] = useState<Submission[]>([])
+  const [form, setForm] = useState({ card_id: '', status: '', notes: '' })
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     const init = async () => {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      if (!user?.id) return;
-      const uid = user.id;
-      setUserId(uid);
+      const { data: { user } } = await fetch('/functions/api/auth').then((res) => res.json())
+      if (!user?.id) return
+      const uid = user.id
+      setUserId(uid)
 
-      const { data: roleData } = await supabase
-        .from("roles")
-        .select("role, organization_id")
-        .eq("user_id", uid)
-        .single();
+      const roleRes = await fetch(`/functions/api/roles?user_id=${uid}`)
+      const roleData = await roleRes.json()
 
-      if (!roleData) return;
-      setIsAdmin(roleData.role === "admin");
-      setOrgId(roleData.organization_id);
+      if (!roleData) return
+
+      setIsAdmin(roleData.role === 'admin')
+      setOrgId(roleData.organization_id)
 
       const [{ data: cardData }, { data: orgUserData }, { data: submissionData }] = await Promise.all([
-        supabase.from("kamishibai_cards").select("id, uid").eq("organization_id", roleData.organization_id),
-        supabase.from("org_users").select("user_id, display_name").eq("organization_id", roleData.organization_id),
-        supabase
-          .from("submissions")
-          .select("*")
-          .eq("organization_id", roleData.organization_id)
-          .order("submitted_at", { ascending: false }),
-      ]);
+        fetch(`/functions/api/kamishibai-cards?organization_id=${roleData.organization_id}`).then((res) => res.json()),
+        fetch(`/functions/api/roles-by-org?organization_id=${roleData.organization_id}`).then((res) => res.json()),
+        fetch(`/functions/api/submissions?organization_id=${roleData.organization_id}`).then((res) => res.json()),
+      ])
 
-      const cardMap = Object.fromEntries((cardData || []).map((c) => [c.id, c.uid]));
-      const userMap = Object.fromEntries((orgUserData || []).map((u) => [u.user_id, u.display_name]));
-
-      const withMeta = (submissionData || []).map((s) => ({
-        ...s,
-        card_uid: cardMap[s.card_id] || "Unknown",
-        user_name: userMap[s.user_id] || "Unknown",
-      }));
-
-      setCards(cardData || []);
-      setUsers(orgUserData || []);
-      setSubmissions(roleData.role === "admin" ? withMeta : withMeta.filter((s) => s.user_id === uid));
-      setLoading(false);
-    };
-
-    init();
-  }, []);
-
-  const handleSubmit = async () => {
-    if (!orgId || !userId) return;
-
-    const payload = {
-      ...form,
-      organization_id: orgId,
-      user_id: userId,
-      submitted_at: new Date().toISOString(),
-    };
-
-    await supabase.from("submissions").insert(payload);
-
-    // NEW: also update audit_assignments if this user has a pending match
-    const { data: match } = await supabase
-      .from("audit_assignments")
-      .select("id")
-      .eq("organization_id", orgId)
-      .eq("user_id", userId)
-      .eq("card_id", form.card_id)
-      .eq("status", "pending")
-      .order("assigned_at", { ascending: false })
-      .limit(1)
-      .single();
-
-    if (match?.id) {
-      await supabase
-        .from("audit_assignments")
-        .update({ status: form.status.toLowerCase(), completed_at: new Date().toISOString() })
-        .eq("id", match.id);
+      setCards(cardData)
+      setUsers(orgUserData)
+      setSubmissions(submissionData)
+      setLoading(false)
     }
 
-    setForm({ card_id: "", status: "", notes: "" });
+    init()
+  }, [isLoaded, isSignedIn, user])
 
-    const { data: updated } = await supabase
-      .from("submissions")
-      .select("*")
-      .eq("organization_id", orgId)
-      .order("submitted_at", { ascending: false });
+  const handleSubmit = async () => {
+    if (!form.card_id || !form.status) return
+    const res = await fetch('/functions/api/submissions', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ...form, user_id: userId, organization_id: orgId }),
+    })
+    const data = await res.json()
 
-    const cardMap = Object.fromEntries(cards.map((c) => [c.id, c.uid]));
-    const userMap = Object.fromEntries(users.map((u) => [u.user_id, u.display_name]));
-
-    const withMeta = (updated || []).map((s) => ({
-      ...s,
-      card_uid: cardMap[s.card_id] || "Unknown",
-      user_name: userMap[s.user_id] || "Unknown",
-    }));
-
-    setSubmissions(isAdmin ? withMeta : withMeta.filter((s) => s.user_id === userId));
-  };
-
-  if (loading) {
-    return (
-      <div className="h-screen flex items-center justify-center text-gray-600">
-        <Loader className="animate-spin mr-2" />
-        Loading...
-      </div>
-    );
+    setSubmissions([data, ...submissions])
+    setForm({ card_id: '', status: '', notes: '' })
   }
 
-  return (
-    <div className="px-4 pt-6 sm:px-6 w-full max-w-5xl mx-auto">
-      <div className="flex justify-between items-center mb-4">
-        <h1 className="text-2xl font-semibold text-gray-900">Submissions</h1>
-      </div>
+  if (loading) return <div className="flex justify-center items-center"><Loader className="animate-spin" /></div>
 
-      <div className="bg-white border border-gray-200 rounded-lg p-4 mb-8">
-        <h2 className="text-lg font-medium text-gray-800 mb-3">New Submission</h2>
-        <div className="grid gap-4 sm:grid-cols-3">
-          <select
-            value={form.card_id}
-            onChange={(e) => setForm({ ...form, card_id: e.target.value })}
-            className="border border-gray-300 rounded px-3 py-2"
-          >
-            <option value="">Select Card</option>
-            {cards.map((card) => (
-              <option key={card.id} value={card.id}>
-                {card.uid}
-              </option>
-            ))}
-          </select>
-          <select
-            value={form.status}
-            onChange={(e) => setForm({ ...form, status: e.target.value })}
-            className="border border-gray-300 rounded px-3 py-2"
-          >
-            <option value="">Select Status</option>
-            <option value="Passed">Passed</option>
-            <option value="Failed">Failed</option>
-            <option value="Needs Attention">Needs Attention</option>
-          </select>
-          <input
-            type="text"
-            value={form.notes}
-            onChange={(e) => setForm({ ...form, notes: e.target.value })}
-            placeholder="Notes"
-            className="border border-gray-300 rounded px-3 py-2"
-          />
-        </div>
+  return (
+    <div className="px-4 pt-6 sm:px-6 w-full max-w-4xl mx-auto">
+      <h1 className="text-2xl font-semibold text-gray-900 mb-4">Submit Audits</h1>
+      <div className="bg-white border border-gray-200 rounded-lg p-4 mb-6">
+        <h2 className="text-lg font-semibold text-gray-800 mb-4">Submit New Audit</h2>
+        <select
+          className="w-full p-3 rounded-lg border border-gray-300 mb-4"
+          value={form.card_id}
+          onChange={(e) => setForm({ ...form, card_id: e.target.value })}
+        >
+          <option value="">Select Card</option>
+          {cards.map((card) => (
+            <option key={card.id} value={card.id}>
+              {card.uid}
+            </option>
+          ))}
+        </select>
+        <select
+          className="w-full p-3 rounded-lg border border-gray-300 mb-4"
+          value={form.status}
+          onChange={(e) => setForm({ ...form, status: e.target.value })}
+        >
+          <option value="">Select Status</option>
+          <option value="Completed">Completed</option>
+          <option value="In Progress">In Progress</option>
+          <option value="Failed">Failed</option>
+        </select>
+        <textarea
+          className="w-full p-3 rounded-lg border border-gray-300 mb-4"
+          placeholder="Notes"
+          value={form.notes}
+          onChange={(e) => setForm({ ...form, notes: e.target.value })}
+        />
         <button
           onClick={handleSubmit}
           disabled={!form.card_id || !form.status}
-          className="mt-4 bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 flex items-center"
+          className="w-full bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 flex items-center justify-center"
         >
           <Send size={18} className="mr-2" />
           Submit
@@ -205,13 +138,11 @@ const SubmissionsPage = () => {
           <tbody>
             {submissions.map((s) => (
               <tr key={s.id} className="hover:bg-gray-50">
-                <td className="px-4 py-2 text-gray-900">{s.card_uid}</td>
-                <td className="px-4 py-2 text-gray-900">{s.status}</td>
-                <td className="px-4 py-2 text-gray-900">{s.notes}</td>
-                <td className="px-4 py-2 text-gray-900">{s.user_name}</td>
-                <td className="px-4 py-2 text-gray-900">
-                  {new Date(s.submitted_at!).toLocaleString()}
-                </td>
+                <td className="px-4 py-2">{s.card_uid}</td>
+                <td className="px-4 py-2">{s.status}</td>
+                <td className="px-4 py-2">{s.notes}</td>
+                <td className="px-4 py-2">{s.user_name}</td>
+                <td className="px-4 py-2">{new Date(s.submitted_at!).toLocaleString()}</td>
               </tr>
             ))}
             {submissions.length === 0 && (
@@ -224,12 +155,8 @@ const SubmissionsPage = () => {
           </tbody>
         </table>
       </div>
-
-      <div className="hidden">
-        <CheckCircle />
-      </div>
     </div>
-  );
-};
+  )
+}
 
-export default SubmissionsPage;
+export default SubmissionsPage

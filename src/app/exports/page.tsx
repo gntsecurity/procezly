@@ -1,52 +1,44 @@
-"use client";
+'use client'
 
-import { useEffect, useState } from "react";
-import { supabase } from "../../utils/supabaseClient";
+import { useEffect, useState } from 'react'
+import { useUser } from '@clerk/nextjs'
 
 interface Submission {
-  id: string;
-  card_id: string;
-  status: string;
-  notes: string;
-  submitted_at: string;
-  user_id: string;
-  organization_id: string;
+  id: string
+  card_id: string
+  status: string
+  notes: string
+  submitted_at: string
+  user_id: string
+  organization_id: string
 }
 
 export default function ExportsPage() {
-  const [submissions, setSubmissions] = useState<Submission[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { user, isSignedIn, isLoaded } = useUser()
+  const [submissions, setSubmissions] = useState<Submission[]>([])
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
+    if (!isLoaded || !isSignedIn) return
+
     const fetchData = async () => {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      if (!user?.id) return;
+      const roleRes = await fetch(`/functions/api/roles?user_id=${user.id}`)
+      const roleData = await roleRes.json()
+      const orgId = roleData.organization_id
 
-      const { data: roleData } = await supabase
-        .from("roles")
-        .select("organization_id")
-        .eq("user_id", user.id)
-        .single();
+      const submissionRes = await fetch(
+        `/functions/api/submissions?organization_id=${orgId}`
+      )
+      const submissionData: Submission[] = await submissionRes.json()
 
-      if (!roleData) return;
+      setSubmissions(submissionData)
+      setLoading(false)
+    }
 
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const orgId = roleData.organization_id;
+    fetchData()
+  }, [isLoaded, isSignedIn, user])
 
-      const { data: submissionData } = await supabase
-        .from("submissions")
-        .select("*")
-        .eq("organization_id", roleData.organization_id)
-        .order("submitted_at", { ascending: false });
-
-      setSubmissions(submissionData || []);
-      setLoading(false);
-    };
-
-    fetchData();
-  }, []);
+  if (!isLoaded || !isSignedIn) return null
 
   return (
     <div className="px-4 pt-6 sm:px-6 w-full max-w-4xl mx-auto">
@@ -83,5 +75,5 @@ export default function ExportsPage() {
         )}
       </div>
     </div>
-  );
+  )
 }

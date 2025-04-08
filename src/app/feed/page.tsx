@@ -1,77 +1,59 @@
-"use client";
+'use client'
 
-import { useEffect, useRef, useState } from "react";
-import { supabase } from "../../utils/supabaseClient";
-import { Loader } from "lucide-react";
+import { useEffect, useState, useRef } from 'react'
+import { useUser } from '@clerk/nextjs'
+import { Loader } from 'lucide-react'
 
 interface AuditLog {
-  id: string;
-  action: string;
-  created_at: string;
-  metadata: Record<string, unknown>;
-  organization_id: string;
+  id: string
+  action: string
+  created_at: string
+  metadata: Record<string, unknown>
+  organization_id: string
 }
 
 export default function FeedPage() {
-  const [logs, setLogs] = useState<AuditLog[]>([]);
-  const [loading, setLoading] = useState(true);
-  const feedRef = useRef<HTMLDivElement>(null);
+  const { user, isSignedIn, isLoaded } = useUser()
+  const [logs, setLogs] = useState<AuditLog[]>([])
+  const [loading, setLoading] = useState(true)
+  const feedRef = useRef<HTMLDivElement>(null)
 
   const scrollToBottom = () => {
     requestAnimationFrame(() => {
       if (feedRef.current) {
-        feedRef.current.scrollTop = feedRef.current.scrollHeight;
+        feedRef.current.scrollTop = feedRef.current.scrollHeight
       }
-    });
-  };
+    })
+  }
 
   useEffect(() => {
+    if (!isLoaded || !isSignedIn) return
+
     const init = async () => {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      if (!user?.id) return;
+      const res = await fetch(`/functions/api/roles?user_id=${user.id}`)
+      const roleData = await res.json()
 
-      const { data: roleData } = await supabase
-        .from("roles")
-        .select("organization_id")
-        .eq("user_id", user.id)
-        .single();
+      if (!roleData) return
 
-      if (!roleData) return;
+      const logsRes = await fetch(
+        `/functions/api/audit-logs?organization_id=${roleData.organization_id}&limit=50`
+      )
+      const initialLogs: AuditLog[] = await logsRes.json()
 
-      const { data: initialLogs } = await supabase
-        .from("audit_logs")
-        .select("*")
-        .eq("organization_id", roleData.organization_id)
-        .order("created_at", { ascending: true });
+      setLogs(initialLogs)
+      setLoading(false)
+      scrollToBottom()
 
-      setLogs(initialLogs || []);
-      setLoading(false);
-      scrollToBottom();
+      const eventSource = new EventSource(`/functions/api/audit-log-stream?organization_id=${roleData.organization_id}`)
+      eventSource.onmessage = (event) => {
+        const entry: AuditLog = JSON.parse(event.data)
+        setLogs((prev) => [entry, ...prev.slice(0, 49)])
+        scrollToBottom()
+      }
+    }
 
-      supabase
-        .channel("audit_feed")
-        .on(
-          "postgres_changes",
-          {
-            event: "INSERT",
-            schema: "public",
-            table: "audit_logs",
-          },
-          (payload) => {
-            const entry = payload.new as AuditLog;
-            if (entry.organization_id === roleData.organization_id) {
-              setLogs((prev) => [entry, ...prev.slice(0, 49)]);
-              scrollToBottom();
-            }
-          }
-        )
-        .subscribe();
-    };
-
-    init();
-  }, []);
+    init()
+  }, [isLoaded, isSignedIn, user])
 
   if (loading) {
     return (
@@ -79,7 +61,7 @@ export default function FeedPage() {
         <Loader className="animate-spin mr-2" />
         Loading feed...
       </div>
-    );
+    )
   }
 
   return (
@@ -105,5 +87,5 @@ export default function FeedPage() {
         )}
       </div>
     </div>
-  );
+  )
 }

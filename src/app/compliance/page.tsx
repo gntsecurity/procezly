@@ -1,9 +1,31 @@
-"use client";
+'use client'
 
-import Link from "next/link";
-import { ShieldCheck, ClipboardList, Users, FileCheck2, Timer } from "lucide-react";
+import { useEffect, useState } from 'react'
+import { useUser } from '@clerk/nextjs'
+import Link from 'next/link'
+import { ShieldCheck, ClipboardList, Users, FileCheck2, Timer } from 'lucide-react'
 
 export default function CompliancePage() {
+  const { user, isSignedIn, isLoaded } = useUser()
+  const [orgId, setOrgId] = useState<string | null>(null)
+
+  useEffect(() => {
+    if (!isLoaded || !isSignedIn) return
+
+    const init = async () => {
+      const roleRes = await fetch(`/functions/api/roles?user_id=${user.id}`)
+      const roleData = await roleRes.json()
+
+      if (!roleData) return
+
+      setOrgId(roleData.organization_id)
+    }
+
+    init()
+  }, [isLoaded, isSignedIn, user])
+
+  if (!isLoaded || !isSignedIn) return null
+
   return (
     <div className="px-4 pt-6 sm:px-6 w-full max-w-3xl mx-auto">
       <h1 className="text-3xl font-bold text-gray-900 mb-4">Compliance & Auditing</h1>
@@ -62,7 +84,7 @@ export default function CompliancePage() {
         </p>
       </div>
     </div>
-  );
+  )
 }
 
 function Badge({ label, href }: { label: string; href: string }) {
@@ -75,7 +97,7 @@ function Badge({ label, href }: { label: string; href: string }) {
     >
       {label}
     </Link>
-  );
+  )
 }
 
 function TimelineItem({ icon, title }: { icon: React.ReactNode; title: string }) {
@@ -84,5 +106,5 @@ function TimelineItem({ icon, title }: { icon: React.ReactNode; title: string })
       <div className="bg-blue-100 text-blue-700 rounded-full p-2">{icon}</div>
       <span className="text-gray-800 font-medium">{title}</span>
     </div>
-  );
+  )
 }

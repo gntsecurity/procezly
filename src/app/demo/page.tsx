@@ -1,54 +1,54 @@
-"use client";
+'use client'
 
-import { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import Navbar from "../../components/Navbar";
+import { useState } from 'react'
+import { motion } from 'framer-motion'
+import Navbar from '../../components/Navbar'
 
 export default function DemoPage() {
   const [formData, setFormData] = useState({
-    name: "",
-    email: "",
-    company: "",
-    industry: "",
-    message: "",
-  });
+    name: '',
+    email: '',
+    company: '',
+    industry: '',
+    message: '',
+  })
 
-  const [submitted, setSubmitted] = useState(false);
-  const [loading, setLoading] = useState(false);
+  const [submitted, setSubmitted] = useState(false)
+  const [loading, setLoading] = useState(false)
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
-  };
+    setFormData({ ...formData, [e.target.name]: e.target.value })
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
+    e.preventDefault()
+    setLoading(true)
 
-    const res = await fetch("/api/demo", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
+    const res = await fetch('/functions/api/demo', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(formData),
-    });
+    })
 
-    setLoading(false);
+    setLoading(false)
 
     if (res.ok) {
-      setSubmitted(true);
+      setSubmitted(true)
       setFormData({
-        name: "",
-        email: "",
-        company: "",
-        industry: "",
-        message: "",
-      });
+        name: '',
+        email: '',
+        company: '',
+        industry: '',
+        message: '',
+      })
 
-      setTimeout(() => setSubmitted(false), 5000);
+      setTimeout(() => setSubmitted(false), 5000)
     } else {
-      alert("Something went wrong. Please try again.");
+      alert('Something went wrong. Please try again.')
     }
-  };
+  }
 
   return (
     <div className="min-h-screen flex flex-col bg-white text-black">
@@ -59,7 +59,7 @@ export default function DemoPage() {
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, ease: "easeOut" }}
+          transition={{ duration: 0.6, ease: 'easeOut' }}
           className="max-w-4xl text-center mb-12"
         >
           <h1 className="text-4xl md:text-6xl font-bold tracking-tight">
@@ -71,75 +71,79 @@ export default function DemoPage() {
         </motion.div>
 
         {/* Submission Success */}
-        <AnimatePresence>
-          {submitted && (
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: 10 }}
-              className="mb-6 text-center bg-green-100 text-green-700 border border-green-300 rounded-lg px-4 py-3 w-full max-w-2xl"
-            >
-              <p className="font-semibold">✅ Request Received!</p>
-              <p className="text-sm mt-1">
-                We’ll reach out shortly. Thank you for choosing Procezly.
-              </p>
-            </motion.div>
-          )}
-        </AnimatePresence>
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.4, ease: 'easeOut' }}
+          className="max-w-4xl text-center mt-16"
+        >
+          <h2 className="text-2xl font-semibold">
+            Trusted by Industry Leaders
+          </h2>
+          <p className="text-gray-600 mt-2">
+            Join top organizations streamlining their compliance with Procezly.
+          </p>
+        </motion.div>
 
         {/* Form Section */}
         <motion.form
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.2, ease: "easeOut" }}
           onSubmit={handleSubmit}
-          className="w-full max-w-2xl bg-white shadow-lg rounded-2xl p-8 space-y-6 border border-gray-200"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.6, delay: 0.2 }}
+          className="w-full max-w-3xl bg-white border border-gray-200 p-8 rounded-lg mt-8"
         >
-          <div className="flex flex-col space-y-4">
-            <input
-              type="text"
-              name="name"
-              placeholder="Your Name"
-              value={formData.name}
-              onChange={handleChange}
-              className="w-full p-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500"
-              required
-            />
-            <input
-              type="email"
-              name="email"
-              placeholder="Work Email"
-              value={formData.email}
-              onChange={handleChange}
-              className="w-full p-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500"
-              required
-            />
-            <input
-              type="text"
-              name="company"
-              placeholder="Company Name"
-              value={formData.company}
-              onChange={handleChange}
-              className="w-full p-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500"
-              required
-            />
-            <input
-              type="text"
-              name="industry"
-              placeholder="Industry"
-              value={formData.industry}
-              onChange={handleChange}
-              className="w-full p-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500"
-            />
-            <textarea
-              name="message"
-              placeholder="Tell us about your compliance needs..."
-              value={formData.message}
-              onChange={handleChange}
-              className="w-full p-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500"
-              rows={4}
-            />
-          </div>
+          <h2 className="text-2xl font-semibold mb-4">Request a Demo</h2>
+
+          {submitted && (
+            <div className="mb-4 p-4 bg-green-50 border border-green-200 text-green-700 rounded">
+              <p>Thank you for your request! We’ll be in touch soon.</p>
+            </div>
+          )}
+
+          <input
+            type="text"
+            name="name"
+            placeholder="Full Name"
+            value={formData.name}
+            onChange={handleChange}
+            className="w-full p-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500"
+            required
+          />
+          <input
+            type="email"
+            name="email"
+            placeholder="Email Address"
+            value={formData.email}
+            onChange={handleChange}
+            className="w-full p-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 mt-4"
+            required
+          />
+          <input
+            type="text"
+            name="company"
+            placeholder="Company Name"
+            value={formData.company}
+            onChange={handleChange}
+            className="w-full p-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 mt-4"
+            required
+          />
+          <input
+            type="text"
+            name="industry"
+            placeholder="Industry"
+            value={formData.industry}
+            onChange={handleChange}
+            className="w-full p-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 mt-4"
+          />
+          <textarea
+            name="message"
+            placeholder="Tell us about your compliance needs..."
+            value={formData.message}
+            onChange={handleChange}
+            className="w-full p-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 mt-4"
+            rows={4}
+          />
 
           {/* Submit Button */}
           <button
@@ -147,27 +151,14 @@ export default function DemoPage() {
             disabled={loading}
             className={`w-full py-3 text-white font-semibold rounded-lg transition ${
               loading
-                ? "bg-blue-400 cursor-not-allowed"
-                : "bg-blue-600 hover:bg-blue-700"
+                ? 'bg-blue-400 cursor-not-allowed'
+                : 'bg-blue-600 hover:bg-blue-700'
             }`}
           >
-            {loading ? "Sending..." : "Request Demo"}
+            {loading ? 'Sending...' : 'Request Demo'}
           </button>
         </motion.form>
-
-        {/* Trust Section */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.4, ease: "easeOut" }}
-          className="max-w-4xl text-center mt-16"
-        >
-          <h2 className="text-2xl font-semibold">Trusted by Industry Leaders</h2>
-          <p className="text-gray-600 mt-2">
-            Join top organizations streamlining their compliance with Procezly.
-          </p>
-        </motion.div>
       </main>
     </div>
-  );
+  )
 }
