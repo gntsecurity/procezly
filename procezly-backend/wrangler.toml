@@ -1,0 +1,19 @@
+name = "procezly-backend"
+compatibility_date = "2025-04-08"
+main = "src/index.ts"
+
+account_id = "bfae875f0457ce7d595f0d23a897e5c9"
+
+# D1 Database configuration - ensure it's in array format (even for one database)
+[[d1_databases]]
+binding = "DB"
+database_name = "procezly"
+database_id = "75d39281-4551-4aaa-ac70-8094776729b1"
+
+# Cron trigger configuration (runs every minute)
+[triggers]
+crons = ["* * * * *"]
+
+# Observability for logging and metrics (optional, but useful for production)
+[observability]
+enabled = true
