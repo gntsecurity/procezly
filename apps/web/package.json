@@ -16,5 +16,11 @@
     "lucide-react": "^0.482.0",
     "framer-motion": "^12.4.10",
     "@procezly/shared": "0.0.1"
+  },
+  "devDependencies": {
+    "typescript": "^5.4.5",
+    "@types/react": "^18.3.3",
+    "@types/node": "^20.11.30",
+    "@types/react-dom": "^18.3.0"
   }
 }

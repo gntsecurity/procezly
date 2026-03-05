@@ -13,5 +13,8 @@
     "jose": "^5.6.3",
     "@procezly/shared": "0.0.1",
     "@procezly/db": "0.0.1"
+  },
+  "devDependencies": {
+    "wrangler": "^3.78.10"
   }
 }
