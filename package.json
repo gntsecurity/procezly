@@ -9,7 +9,8 @@
     "dev": "npm run dev -w @procezly/web",
     "dev:web": "npm run dev -w @procezly/web",
     "dev:api": "npm run dev -w @procezly/api",
-    "build": "npm run build -w @procezly/web && npm run build -w @procezly/api",
-    "lint": "npm run lint -w @procezly/web"
+    "build": "npm run build -w @procezly/web && rm -rf out && cp -R apps/web/out ./out",
+    "lint": "npm run lint -w @procezly/web",
+    "build:api": "npm run build -w @procezly/api"
   }
 }

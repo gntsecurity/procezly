@@ -24,11 +24,7 @@ const Sidebar: React.FC<SidebarProps> = ({ collapsed, setCollapsed }) => {
   const [isMobile, setIsMobile] = useState(false);
 
   const handleLogout = async () => {
-    try {
-      await fetch("/api/logout", { method: "POST" });
-    } finally {
-      router.push("/signin");
-    }
+    router.push("/signin");
   };
 
   useEffect(() => {
