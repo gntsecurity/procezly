@@ -10,17 +10,17 @@
     "lint": "next lint"
   },
   "dependencies": {
-    "next": "15.1.0",
-    "react": "19.0.0",
-    "react-dom": "19.0.0",
+    "next": "15.1.11",
+    "react": "19.0.1",
+    "react-dom": "19.0.1",
     "lucide-react": "^0.482.0",
     "framer-motion": "^12.4.10",
     "@procezly/shared": "0.0.1"
   },
   "devDependencies": {
     "typescript": "^5.4.5",
-    "@types/react": "^18.3.3",
+    "@types/react": "^19.0.0",
     "@types/node": "^20.11.30",
-    "@types/react-dom": "^18.3.0"
+    "@types/react-dom": "^19.0.0"
   }
 }
