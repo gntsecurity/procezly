@@ -1,0 +1,20 @@
+{
+  "name": "@procezly/web",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "next dev -p 3000",
+    "build": "next build",
+    "start": "next start -p 3000",
+    "lint": "next lint"
+  },
+  "dependencies": {
+    "next": "15.1.0",
+    "react": "19.0.0",
+    "react-dom": "19.0.0",
+    "lucide-react": "^0.482.0",
+    "framer-motion": "^12.4.10",
+    "@procezly/shared": "0.0.1"
+  }
+}

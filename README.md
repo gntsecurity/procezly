@@ -1,7 +1,24 @@
 # Procezly
 
-Procezly is a modern process management platform built for teams that need structure without the bloat.
+Multi-tenant Automotive QMS + Kamishibai (Layered Process Audits)
 
-It helps businesses design, track, and optimize recurring workflows—without relying on spreadsheets, sticky notes, or clunky tools. Whether you're onboarding new hires, running client projects, or managing internal ops, Procezly gives you the clarity and control to make it run smooth.
+## Domains
 
-🔗 Live at [procezly.com](https://procezly.com) and [procezly.io](https://procezly.io)
+- procezly.io: marketing + entry
+- *.procezly.io: tenant app
+
+## Local development
+
+1. Copy env files:
+- apps/api/.dev.vars.example -> apps/api/.dev.vars
+- apps/web/.env.local.example -> apps/web/.env.local
+
+2. Install and run:
+- npm install
+- npm run dev:web
+- npm run dev:api
+
+## Deploy
+
+- apps/web: Cloudflare Pages
+- apps/api: Cloudflare Workers
