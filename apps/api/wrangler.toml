@@ -1,9 +1,0 @@
-name = "procezly-api"
-main = "src/index.ts"
-compatibility_date = "2026-03-01"
-
-[vars]
-ROOT_DOMAIN = "procezly.io"
-WEB_ORIGIN = "http://localhost:3000"
-SESSION_COOKIE_NAME = "procezly_session"
-
